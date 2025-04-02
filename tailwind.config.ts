@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// School theme colors
+				school: {
+					primary: '#1E3A8A', // Deep blue
+					secondary: '#2563EB', // Medium blue
+					accent: '#DBEAFE', // Light blue
+					highlight: '#FEF3C7', // Light yellow for highlights
+					success: '#064E3B', // Dark green
+					warning: '#F59E0B', // Amber/orange
+					light: '#F3F4F6', // Light gray
+					dark: '#1F2937', // Dark gray
 				}
 			},
 			borderRadius: {
@@ -89,6 +101,10 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				display: ['Playfair Display', 'serif'],
 			}
 		}
 	},

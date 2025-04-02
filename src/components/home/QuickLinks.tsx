@@ -59,12 +59,14 @@ const QuickLinks = () => {
             <Link
               key={index}
               to={item.link}
-              className={`card-link ${item.color} rounded-lg p-6 shadow-sm transition-all duration-300`}
+              className={`card-link ${item.color} rounded-lg p-6 shadow-sm transition-all duration-300 transform hover:-translate-y-2`}
               data-aos="fade-up"
               data-aos-delay={100 + (index * 50)}
             >
               <div className="flex flex-col items-center text-center">
-                <div className="mb-4 card-icon-container">{item.icon}</div>
+                <div className="mb-4 card-icon-container p-3 rounded-full bg-white/80">
+                  {item.icon}
+                </div>
                 <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
                 <p className="text-gray-600">{item.description}</p>
               </div>

@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -98,6 +97,10 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-bold;
   }
+  
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 @layer components {
@@ -155,6 +158,35 @@
     @apply text-school-secondary;
   }
 
+  /* Enhanced Card styles */
+  .enhanced-card {
+    @apply transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-lg;
+  }
+  
+  .enhanced-card:hover .card-image {
+    @apply scale-110;
+  }
+  
+  .enhanced-card:hover .card-overlay {
+    @apply bg-opacity-70;
+  }
+  
+  .card-image {
+    @apply transition-transform duration-300 ease-in-out;
+  }
+  
+  .card-overlay {
+    @apply absolute inset-0 bg-black bg-opacity-40 transition-all duration-300;
+  }
+
+  /* Parallax effect for bg-fixed doesn't work on some mobile browsers, 
+     this is a fallback that still looks good */
+  @supports not (background-attachment: fixed) {
+    .bg-fixed {
+      background-attachment: scroll;
+    }
+  }
+
   /* Animation utilities */
   .hover-scale {
     @apply transform transition-transform duration-300 hover:scale-105;
@@ -178,6 +210,35 @@
 
   .animate-icon:hover {
     animation: pulse 2s infinite;
+  }
+  
+  /* New animation utilities */
+  .hover-grow {
+    @apply transition-transform duration-300 ease-in-out hover:scale-105;
+  }
+  
+  .hover-shine {
+    @apply relative overflow-hidden;
+  }
+  
+  .hover-shine::before {
+    @apply absolute top-0 left-[-75%] z-[2] block w-1/2 h-full bg-white/30 transform -skew-x-12;
+    content: '';
+  }
+  
+  .hover-shine:hover::before {
+    animation: shine 0.85s;
+  }
+  
+  @keyframes shine {
+    100% {
+      left: 125%;
+    }
+  }
+  
+  /* Enhanced background zoom */
+  .bg-zoom {
+    @apply transition-transform duration-[6s] ease-in-out hover:scale-105;
   }
 
   @keyframes fadeDown {

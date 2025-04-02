@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import {
@@ -13,21 +13,52 @@ import { cn } from "@/lib/utils";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // Main navigation items
+  useEffect(() => {
+    const handleScroll = () => {
+      const offset = window.scrollY;
+      if (offset > 50) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId.replace('#', ''));
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleAnchorClick = (e, path) => {
+    if (path.includes('#')) {
+      if (location.pathname === path.split('#')[0] || (location.pathname === '/' && path.startsWith('/#'))) {
+        e.preventDefault();
+        const sectionId = path.split('#')[1];
+        scrollToSection(sectionId);
+      }
+    }
+  };
+
   const mainNavItems = [
     { name: 'Home', path: '/' },
-    // About, Programs and Events are handled separately as dropdowns
     { name: 'Admissions', path: '/admissions' },
     { name: 'Contact', path: '/contact' },
   ];
 
-  // About Us dropdown sections
   const aboutUsDropdown = [
     {
       title: 'History of School',
@@ -51,7 +82,6 @@ const Navbar = () => {
     },
   ];
 
-  // Programs dropdown sections
   const programsDropdown = [
     {
       title: 'Technical Stream (IX-XII)',
@@ -80,7 +110,6 @@ const Navbar = () => {
     },
   ];
 
-  // Events & News dropdown sections
   const eventsDropdown = [
     {
       title: 'Latest News',
@@ -104,7 +133,6 @@ const Navbar = () => {
     },
   ];
 
-  // Custom component for NavigationMenuLink
   const ListItem = React.forwardRef<
     React.ElementRef<"a">,
     React.ComponentPropsWithoutRef<"a">
@@ -132,26 +160,23 @@ const Navbar = () => {
   ListItem.displayName = "ListItem";
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className={`bg-white shadow-md transition-all duration-300 z-50 ${scrolled ? 'fixed top-0 left-0 right-0 animate-fadeDown' : ''}`}>
       <div className="container-custom py-4">
         <div className="flex justify-between items-center">
-          {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-display font-bold text-school-primary">Campus</span>
             <span className="text-2xl font-display font-medium text-school-secondary">Gateway</span>
           </Link>
 
-          {/* Desktop Navigation with Dropdowns */}
           <div className="hidden md:flex items-center">
             <NavigationMenu>
               <NavigationMenuList>
-                {/* Home Link */}
                 <NavigationMenuItem>
                   <Link 
                     to="/" 
-                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent ${
+                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent relative nav-link ${
                       location.pathname === '/' 
-                        ? 'text-school-primary font-semibold' 
+                        ? 'text-school-primary font-semibold nav-link-active' 
                         : 'text-gray-700'
                     }`}
                   >
@@ -159,24 +184,25 @@ const Navbar = () => {
                   </Link>
                 </NavigationMenuItem>
 
-                {/* About Us Dropdown */}
                 <NavigationMenuItem>
                   <NavigationMenuTrigger 
-                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent ${
+                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent relative nav-link ${
                       location.pathname === '/about' 
-                        ? 'text-school-primary font-semibold' 
+                        ? 'text-school-primary font-semibold nav-link-active' 
                         : 'text-gray-700'
                     }`}
                   >
                     About Us
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="animate-fadeIn">
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
                       {aboutUsDropdown.map((item) => (
                         <ListItem
                           key={item.path}
                           title={item.title}
                           href={item.path}
+                          onClick={(e) => handleAnchorClick(e, item.path)}
+                          className="hover:bg-school-accent transition-all duration-300"
                         >
                           {item.description}
                         </ListItem>
@@ -185,24 +211,25 @@ const Navbar = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                {/* Programs Dropdown */}
                 <NavigationMenuItem>
                   <NavigationMenuTrigger 
-                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent ${
+                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent relative nav-link ${
                       location.pathname === '/programs' 
-                        ? 'text-school-primary font-semibold' 
+                        ? 'text-school-primary font-semibold nav-link-active' 
                         : 'text-gray-700'
                     }`}
                   >
                     Programs
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="animate-fadeIn">
                     <ul className="grid gap-3 p-4 md:w-[600px] md:grid-cols-2">
                       {programsDropdown.map((item) => (
                         <ListItem
                           key={item.path}
                           title={item.title}
                           href={item.path}
+                          onClick={(e) => handleAnchorClick(e, item.path)}
+                          className="hover:bg-school-accent transition-all duration-300"
                         >
                           {item.description}
                         </ListItem>
@@ -211,24 +238,25 @@ const Navbar = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                {/* Events & News Dropdown */}
                 <NavigationMenuItem>
                   <NavigationMenuTrigger 
-                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent ${
+                    className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent relative nav-link ${
                       location.pathname === '/events' 
-                        ? 'text-school-primary font-semibold' 
+                        ? 'text-school-primary font-semibold nav-link-active' 
                         : 'text-gray-700'
                     }`}
                   >
                     Events & News
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="animate-fadeIn">
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
                       {eventsDropdown.map((item) => (
                         <ListItem
                           key={item.path}
                           title={item.title}
                           href={item.path}
+                          onClick={(e) => handleAnchorClick(e, item.path)}
+                          className="hover:bg-school-accent transition-all duration-300"
                         >
                           {item.description}
                         </ListItem>
@@ -237,14 +265,13 @@ const Navbar = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                {/* Regular links */}
                 {mainNavItems.slice(1).map((item) => (
                   <NavigationMenuItem key={item.name}>
                     <Link
                       to={item.path}
-                      className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent ${
+                      className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent relative nav-link ${
                         location.pathname === item.path 
-                          ? 'text-school-primary font-semibold' 
+                          ? 'text-school-primary font-semibold nav-link-active' 
                           : 'text-gray-700'
                       }`}
                     >
@@ -255,12 +282,11 @@ const Navbar = () => {
               </NavigationMenuList>
             </NavigationMenu>
             
-            <Link to="/login" className="ml-4 btn-primary">
+            <Link to="/login" className="ml-4 btn-primary hover-scale">
               Login
             </Link>
           </div>
 
-          {/* Mobile Navigation Button */}
           <div className="md:hidden flex items-center">
             <button
               onClick={toggleMenu}
@@ -277,14 +303,12 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation Menu - Simplified for mobile */}
         {isMenuOpen && (
-          <div className="md:hidden">
+          <div className="md:hidden animate-slideDown">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {/* Home Link */}
               <Link
                 to="/"
-                className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent ${
+                className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent transition-colors ${
                   location.pathname === '/' 
                     ? 'text-school-primary font-semibold' 
                     : 'text-gray-700'
@@ -294,11 +318,10 @@ const Navbar = () => {
                 Home
               </Link>
               
-              {/* About Us with sub-sections */}
               <div className="space-y-1">
                 <Link
                   to="/about"
-                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent ${
+                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent transition-colors ${
                     location.pathname === '/about' 
                       ? 'text-school-primary font-semibold' 
                       : 'text-gray-700'
@@ -312,7 +335,7 @@ const Navbar = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className="block px-3 py-1 text-sm text-gray-600 hover:text-school-primary"
+                      className="block px-3 py-1 text-sm text-gray-600 hover:text-school-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.title}
@@ -321,11 +344,10 @@ const Navbar = () => {
                 </div>
               </div>
               
-              {/* Programs with sub-sections */}
               <div className="space-y-1">
                 <Link
                   to="/programs"
-                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent ${
+                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent transition-colors ${
                     location.pathname === '/programs' 
                       ? 'text-school-primary font-semibold' 
                       : 'text-gray-700'
@@ -339,7 +361,7 @@ const Navbar = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className="block px-3 py-1 text-sm text-gray-600 hover:text-school-primary"
+                      className="block px-3 py-1 text-sm text-gray-600 hover:text-school-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.title}
@@ -348,11 +370,10 @@ const Navbar = () => {
                 </div>
               </div>
               
-              {/* Events & News with sub-sections */}
               <div className="space-y-1">
                 <Link
                   to="/events"
-                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent ${
+                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent transition-colors ${
                     location.pathname === '/events' 
                       ? 'text-school-primary font-semibold' 
                       : 'text-gray-700'
@@ -366,7 +387,7 @@ const Navbar = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className="block px-3 py-1 text-sm text-gray-600 hover:text-school-primary"
+                      className="block px-3 py-1 text-sm text-gray-600 hover:text-school-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.title}
@@ -375,12 +396,11 @@ const Navbar = () => {
                 </div>
               </div>
               
-              {/* Other main nav items */}
               {mainNavItems.slice(1).map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent ${
+                  className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent transition-colors ${
                     location.pathname === item.path 
                       ? 'text-school-primary font-semibold' 
                       : 'text-gray-700'
@@ -391,10 +411,9 @@ const Navbar = () => {
                 </Link>
               ))}
               
-              {/* Login link */}
               <Link
                 to="/login"
-                className="block px-3 py-2 text-base font-medium text-school-primary hover:bg-school-accent rounded-md"
+                className="block px-3 py-2 text-base font-medium text-school-primary hover:bg-school-accent rounded-md transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Login

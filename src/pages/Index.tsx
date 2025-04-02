@@ -11,11 +11,14 @@ import 'aos/dist/aos.css';
 
 const Index = () => {
   useEffect(() => {
-    // Initialize AOS
+    // Initialize AOS with more options
     AOS.init({
       duration: 800,
       easing: 'ease-in-out',
       once: false,
+      offset: 100,
+      delay: 100,
+      mirror: true
     });
   }, []);
 
@@ -50,7 +53,7 @@ const Index = () => {
             </p>
             <a
               href="/admissions"
-              className="inline-block bg-white text-school-primary font-medium py-3 px-8 rounded-md hover:bg-school-accent transition-colors hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+              className="inline-block bg-white text-school-primary font-medium py-3 px-8 rounded-md hover:bg-school-accent transition-colors hover:shadow-lg transform hover-scale"
             >
               Apply Now
             </a>

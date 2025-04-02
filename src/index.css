@@ -120,4 +120,106 @@
   .section-subheading {
     @apply text-xl md:text-2xl font-semibold mb-4 text-school-secondary;
   }
+
+  /* Navigation styles */
+  .nav-link {
+    @apply transition-all duration-300;
+  }
+
+  .nav-link::after {
+    @apply content-[''] absolute left-0 bottom-0 h-0.5 w-0 bg-school-primary transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
+  }
+
+  .nav-link-active::after {
+    @apply w-full;
+  }
+
+  /* Card styles */
+  .card-link {
+    @apply hover:shadow-xl hover:-translate-y-1 hover:shadow-school-primary/20;
+  }
+
+  .card-icon-container {
+    @apply transition-all duration-300 rounded-full p-3;
+  }
+
+  .card-link:hover .card-icon-container {
+    @apply bg-school-accent scale-110 rotate-6;
+  }
+
+  .card-link:hover .animate-icon {
+    @apply text-school-secondary;
+  }
+
+  /* Animation utilities */
+  .hover-scale {
+    @apply transform transition-transform duration-300 hover:scale-105;
+  }
+
+  .animate-fadeDown {
+    animation: fadeDown 0.3s ease-in-out forwards;
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out forwards;
+  }
+
+  .animate-slideDown {
+    animation: slideDown 0.3s ease-in-out forwards;
+  }
+
+  .animate-icon {
+    @apply transition-all duration-300;
+  }
+
+  .animate-icon:hover {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes fadeDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 1000px;
+    }
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Play, Pause, ChevronDown } from 'lucide-react';
@@ -21,7 +20,10 @@ const HeroBanner = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const typedTextRef = useRef<HTMLSpanElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, draggable: true });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    dragFree: true 
+  });
 
   const slides = [
     {

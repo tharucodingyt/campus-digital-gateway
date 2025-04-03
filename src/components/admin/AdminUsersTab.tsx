@@ -24,64 +24,22 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 
-// Mock data for users - in production, this would come from your Supabase database
-const initialUsers = [
-  {
-    id: "1",
-    email: "admin@school.edu",
-    full_name: "Admin User",
-    created_at: "2025-01-15",
-    last_sign_in: "2025-04-01",
-    is_admin: true,
-    is_verified: true,
-  },
-  {
-    id: "2",
-    email: "teacher1@school.edu",
-    full_name: "John Smith",
-    created_at: "2025-01-20",
-    last_sign_in: "2025-03-28",
-    is_admin: false,
-    is_verified: true,
-  },
-  {
-    id: "3",
-    email: "teacher2@school.edu",
-    full_name: "Emily Johnson",
-    created_at: "2025-02-05",
-    last_sign_in: "2025-03-30",
-    is_admin: false,
-    is_verified: true,
-  },
-  {
-    id: "4",
-    email: "pending@school.edu",
-    full_name: "Pending User",
-    created_at: "2025-03-25",
-    last_sign_in: null,
-    is_admin: false,
-    is_verified: false,
-  },
-];
-
 interface User {
   id: string;
   email: string;
-  full_name: string;
   created_at: string;
-  last_sign_in: string | null;
+  last_sign_in_at: string | null;
   is_admin: boolean;
-  is_verified: boolean;
 }
 
 const AdminUsersTab = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newUserData, setNewUserData] = useState({
     email: "",
-    full_name: "",
     password: "",
     is_admin: false,
   });
@@ -89,31 +47,86 @@ const AdminUsersTab = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPromoteDialogOpen, setIsPromoteDialogOpen] = useState(false);
 
-  // In a real implementation, you would fetch users from your Supabase database
+  // Fetch users from Supabase
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      // First, get all auth users
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        throw authError;
+      }
+
+      if (!authUsers || !authUsers.users) {
+        setUsers([]);
+        return;
+      }
+
+      // Get admin users to check which users are admins
+      const { data: adminUsers, error: adminError } = await supabase
+        .from("admin_users")
+        .select("id");
+
+      if (adminError) {
+        throw adminError;
+      }
+
+      // Create admin IDs set for quick lookup
+      const adminIds = new Set(adminUsers?.map(admin => admin.id) || []);
+
+      // Map auth users to our User interface
+      const mappedUsers = authUsers.users.map(user => ({
+        id: user.id,
+        email: user.email || "",
+        created_at: new Date(user.created_at || "").toLocaleDateString(),
+        last_sign_in_at: user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : null,
+        is_admin: adminIds.has(user.id),
+      }));
+
+      setUsers(mappedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Error fetching users",
+        description: "There was an error loading users. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // This is where you would normally fetch users from Supabase
-    // For now, we're using the mock data
+    fetchUsers();
   }, []);
 
   const handleAddUser = async () => {
     try {
-      // In a real implementation, you would use Supabase to create a user
-      // For now, we'll just simulate it
-      const newUser: User = {
-        id: Date.now().toString(),
+      // Create a new user with Supabase Auth
+      const { data, error } = await supabase.auth.admin.createUser({
         email: newUserData.email,
-        full_name: newUserData.full_name,
-        created_at: new Date().toISOString().split('T')[0],
-        last_sign_in: null,
-        is_admin: newUserData.is_admin,
-        is_verified: false,
-      };
+        password: newUserData.password,
+        email_confirm: true
+      });
 
-      setUsers([...users, newUser]);
+      if (error) throw error;
+
+      if (newUserData.is_admin && data.user) {
+        // If the new user should be an admin, add them to the admin_users table
+        const { error: adminError } = await supabase
+          .from("admin_users")
+          .insert({ id: data.user.id });
+
+        if (adminError) throw adminError;
+      }
+
+      // Refresh the user list
+      await fetchUsers();
+
       setIsAddUserOpen(false);
       setNewUserData({
         email: "",
-        full_name: "",
         password: "",
         is_admin: false,
       });
@@ -122,60 +135,128 @@ const AdminUsersTab = () => {
         title: "User created",
         description: "The user has been successfully created",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error creating user",
-        description: "There was an error creating the user",
+        description: error.message || "There was an error creating the user",
         variant: "destructive",
       });
     }
   };
 
-  const handlePromoteUser = () => {
+  const handlePromoteUser = async () => {
     if (!selectedUser) return;
 
-    setUsers(
-      users.map((user) =>
-        user.id === selectedUser.id ? { ...user, is_admin: true } : user
-      )
-    );
+    try {
+      // Add the user to the admin_users table
+      const { error } = await supabase
+        .from("admin_users")
+        .insert({ id: selectedUser.id });
 
-    toast({
-      title: "User promoted",
-      description: `${selectedUser.full_name || selectedUser.email} has been promoted to an admin.`,
-    });
+      if (error) throw error;
 
-    setIsPromoteDialogOpen(false);
-    setSelectedUser(null);
+      // Update local state
+      setUsers(
+        users.map((user) =>
+          user.id === selectedUser.id ? { ...user, is_admin: true } : user
+        )
+      );
+
+      toast({
+        title: "User promoted",
+        description: `${selectedUser.email} has been promoted to an admin.`,
+      });
+
+      setIsPromoteDialogOpen(false);
+      setSelectedUser(null);
+    } catch (error: any) {
+      toast({
+        title: "Error promoting user",
+        description: error.message || "There was an error promoting the user",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteUser = () => {
+  const handleRemoveAdmin = async (user: User) => {
+    try {
+      // Remove the user from the admin_users table
+      const { error } = await supabase
+        .from("admin_users")
+        .delete()
+        .match({ id: user.id });
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id ? { ...u, is_admin: false } : u
+        )
+      );
+
+      toast({
+        title: "Admin rights removed",
+        description: `Admin rights have been removed from ${user.email}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error removing admin rights",
+        description: error.message || "There was an error removing admin rights",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
-    setUsers(users.filter((user) => user.id !== selectedUser.id));
+    try {
+      // Delete the user from Supabase Auth
+      const { error } = await supabase.auth.admin.deleteUser(selectedUser.id);
 
-    toast({
-      title: "User deleted",
-      description: `${selectedUser.full_name || selectedUser.email} has been deleted.`,
-    });
+      if (error) throw error;
 
-    setIsDeleteDialogOpen(false);
-    setSelectedUser(null);
+      // Remove from local state
+      setUsers(users.filter((user) => user.id !== selectedUser.id));
+
+      toast({
+        title: "User deleted",
+        description: `${selectedUser.email} has been deleted.`,
+      });
+
+      setIsDeleteDialogOpen(false);
+      setSelectedUser(null);
+    } catch (error: any) {
+      toast({
+        title: "Error deleting user",
+        description: error.message || "There was an error deleting the user",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSendPasswordReset = (email: string) => {
-    // In a real implementation, you would use Supabase to send a password reset email
-    // For now, we'll just show a toast notification
-    toast({
-      title: "Password reset email sent",
-      description: `A password reset email has been sent to ${email}.`,
-    });
+  const handleSendPasswordReset = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (error) throw error;
+
+      toast({
+        title: "Password reset email sent",
+        description: `A password reset email has been sent to ${email}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error sending password reset",
+        description: error.message || "There was an error sending the password reset email",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredUsers = users.filter(
-    (user) =>
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    (user) => user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -202,84 +283,94 @@ const AdminUsersTab = () => {
           <CardDescription>Manage users and their permissions</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name/Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Last Sign In</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="font-medium">{user.full_name || "—"}</div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                  </TableCell>
-                  <TableCell>
-                    {user.is_verified ? (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        Verified
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                        Pending
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.is_admin ? (
-                      <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
-                        Admin
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">User</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>{user.created_at}</TableCell>
-                  <TableCell>{user.last_sign_in || "Never"}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSendPasswordReset(user.email)}
-                      title="Send password reset email"
-                    >
-                      <Mail className="h-4 w-4" />
-                    </Button>
-                    {!user.is_admin && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setIsPromoteDialogOpen(true);
-                        }}
-                        title="Promote to admin"
-                      >
-                        <Shield className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedUser(user);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                      title="Delete user"
-                    >
-                      <UserX className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <p>Loading users...</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Last Sign In</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      No users found. Create new users using the "Add User" button.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="font-medium">{user.email}</div>
+                      </TableCell>
+                      <TableCell>
+                        {user.is_admin ? (
+                          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
+                            Admin
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">User</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>{user.created_at}</TableCell>
+                      <TableCell>{user.last_sign_in_at || "Never"}</TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSendPasswordReset(user.email)}
+                          title="Send password reset email"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        {user.is_admin ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveAdmin(user)}
+                            title="Remove admin rights"
+                          >
+                            <Shield className="h-4 w-4 text-red-500" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setIsPromoteDialogOpen(true);
+                            }}
+                            title="Promote to admin"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                          title="Delete user"
+                        >
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -289,7 +380,7 @@ const AdminUsersTab = () => {
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>
-              Create a new user account. The user will receive an email with instructions to set up their password.
+              Create a new user account. You can optionally make them an admin.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -308,19 +399,6 @@ const AdminUsersTab = () => {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium">
-                Full Name
-              </label>
-              <Input
-                id="fullName"
-                value={newUserData.full_name}
-                onChange={(e) =>
-                  setNewUserData({ ...newUserData, full_name: e.target.value })
-                }
-                placeholder="John Doe"
-              />
-            </div>
-            <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
                 Password
               </label>
@@ -331,11 +409,8 @@ const AdminUsersTab = () => {
                 onChange={(e) =>
                   setNewUserData({ ...newUserData, password: e.target.value })
                 }
-                placeholder="Temporary password"
+                placeholder="Create a password"
               />
-              <p className="text-xs text-gray-500">
-                The user can change their password after logging in.
-              </p>
             </div>
             <div className="flex items-center space-x-2">
               <input

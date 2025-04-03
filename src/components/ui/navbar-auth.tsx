@@ -17,6 +17,11 @@ export function NavbarAuth() {
               </Button>
             </NavLink>
           )}
+          <NavLink to="/profile">
+            <Button variant="ghost" size="sm">
+              Profile
+            </Button>
+          </NavLink>
           <Button variant="outline" size="sm" onClick={() => signOut()}>
             Sign Out
           </Button>

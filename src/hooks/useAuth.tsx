@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,20 +56,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAdminStatus = async (userId: string) => {
     try {
-      const { data, error } = await supabase.rpc('is_admin', {
+      // Add a timeout to the RPC call to prevent long-hanging requests
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timed out')), 5000)
+      );
+      
+      const adminCheckPromise = supabase.rpc('is_admin', {
         user_id: userId
       });
       
+      // Race between the timeout and the actual request
+      const { data, error } = await Promise.race([
+        adminCheckPromise,
+        timeoutPromise.then(() => {
+          throw new Error('Request timed out');
+        })
+      ]) as any;
+      
       if (error) {
         console.error('Error checking admin status:', error);
-        setIsAdmin(false);
+        // Don't change admin status on error - keep previous state
         return;
       }
       
       setIsAdmin(!!data);
     } catch (error) {
       console.error('Error checking admin status:', error);
-      setIsAdmin(false);
+      // Don't change admin status on error - keep previous state
     }
   };
 

@@ -98,7 +98,7 @@ const Auth = () => {
         <CardHeader>
           <CardTitle className="text-2xl text-center">School Portal</CardTitle>
           <CardDescription className="text-center">
-            Sign in to access the administrative features
+            Admin Portal - Sign in to access the administrative features
           </CardDescription>
         </CardHeader>
         <Tabs defaultValue="login">
@@ -202,7 +202,7 @@ const Auth = () => {
                     className="w-full"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Creating account..." : "Create Account"}
+                    {isSubmitting ? "Creating account..." : "Create Admin Account"}
                   </Button>
                 </CardFooter>
               </form>

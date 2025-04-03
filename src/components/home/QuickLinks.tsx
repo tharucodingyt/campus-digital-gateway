@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, LogIn, Phone, GraduationCap, BookOpen } from 'lucide-react';
@@ -20,10 +19,10 @@ const QuickLinks = () => {
       color: 'bg-green-50',
     },
     {
-      title: 'Teacher/Admin Login',
-      description: 'Access your dashboard and resources',
+      title: 'Admin Login',
+      description: 'Access your admin dashboard and resources',
       icon: <LogIn className="h-8 w-8 text-school-primary animate-icon" />,
-      link: '/login',
+      link: '/auth',
       color: 'bg-amber-50',
     },
     {
@@ -32,13 +31,6 @@ const QuickLinks = () => {
       icon: <Phone className="h-8 w-8 text-school-primary animate-icon" />,
       link: '/contact',
       color: 'bg-purple-50',
-    },
-    {
-      title: 'Student Portal',
-      description: 'Access study materials and grades',
-      icon: <GraduationCap className="h-8 w-8 text-school-primary animate-icon" />,
-      link: '/login?role=student',
-      color: 'bg-red-50',
     },
     {
       title: 'Library Resources',

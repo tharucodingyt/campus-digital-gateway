@@ -27,9 +27,9 @@ export function NavbarAuth() {
           </Button>
         </>
       ) : (
-        <NavLink to="/login">
+        <NavLink to="/auth">
           <Button variant="outline" size="sm">
-            Sign In
+            Admin Login
           </Button>
         </NavLink>
       )}

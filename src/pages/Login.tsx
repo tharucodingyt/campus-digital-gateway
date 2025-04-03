@@ -6,7 +6,6 @@ import Footer from '../components/layout/Footer';
 import { useToast } from "../hooks/use-toast";
 
 const Login = () => {
-  const [activeTab, setActiveTab] = useState('admin');
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
@@ -39,20 +38,7 @@ const Login = () => {
           variant: "default",
         });
         
-        // Redirect to different dashboards based on role
-        switch (activeTab) {
-          case 'admin':
-            navigate('/admin-dashboard');
-            break;
-          case 'teacher':
-            navigate('/teacher-dashboard');
-            break;
-          case 'student':
-            navigate('/student-dashboard');
-            break;
-          default:
-            navigate('/');
-        }
+        navigate('/admin-dashboard');
       } else {
         toast({
           title: "Login Failed",
@@ -69,27 +55,15 @@ const Login = () => {
       <main className="flex-grow py-12 bg-gray-50">
         <div className="container-custom">
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Tabs */}
-            <div className="flex border-b">
-              {['admin', 'teacher', 'student'].map((tab) => (
-                <button
-                  key={tab}
-                  className={`flex-1 py-4 text-center font-medium transition-colors ${
-                    activeTab === tab
-                      ? 'bg-school-primary text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)} Login
-                </button>
-              ))}
+            {/* Admin Header */}
+            <div className="bg-school-primary py-4 text-center">
+              <h2 className="text-xl font-semibold text-white">Admin Portal</h2>
             </div>
             
             {/* Login Form */}
             <div className="p-8">
               <h2 className="text-2xl font-semibold text-center text-school-primary mb-6">
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Portal
+                Administrator Login
               </h2>
               
               <form onSubmit={handleSubmit}>

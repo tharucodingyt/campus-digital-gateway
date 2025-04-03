@@ -11,14 +11,16 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import * as EmblaCarousel from 'embla-carousel-react';
+import emblaCarouselReact from 'embla-carousel-react';
+
+const useEmblaCarousel = emblaCarouselReact.useEmblaCarousel;
 
 const HeroBanner = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const typedTextRef = useRef<HTMLSpanElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [emblaRef, emblaApi] = EmblaCarousel.useEmblaCarousel({ loop: true, draggable: true });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, draggable: true });
 
   const slides = [
     {

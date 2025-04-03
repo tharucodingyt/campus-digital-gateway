@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Play, Pause, ChevronDown } from 'lucide-react';
@@ -11,9 +12,9 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import emblaCarouselReact from 'embla-carousel-react';
+import * as emblaCarouselReact from 'embla-carousel-react';
 
-const useEmblaCarousel = emblaCarouselReact.useEmblaCarousel;
+const useEmblaCarousel = emblaCarouselReact.default;
 
 const HeroBanner = () => {
   const [isPlaying, setIsPlaying] = useState(true);

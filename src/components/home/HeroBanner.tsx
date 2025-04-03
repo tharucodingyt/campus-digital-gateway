@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Play, Pause, ChevronDown } from 'lucide-react';
@@ -12,14 +11,14 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { useEmblaCarousel } from 'embla-carousel-react';
+import * as EmblaCarousel from 'embla-carousel-react';
 
 const HeroBanner = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const typedTextRef = useRef<HTMLSpanElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, draggable: true });
+  const [emblaRef, emblaApi] = EmblaCarousel.useEmblaCarousel({ loop: true, draggable: true });
 
   const slides = [
     {
@@ -68,14 +67,12 @@ const HeroBanner = () => {
   ];
 
   useEffect(() => {
-    // Initialize AOS
     AOS.init({
       duration: 1000,
       once: false,
       mirror: true,
     });
 
-    // Simple typed text effect without using typed.js
     let currentTextIndex = 0;
     let currentCharIndex = 0;
     let isDeleting = false;
@@ -88,23 +85,19 @@ const HeroBanner = () => {
       const currentText = typedTextOptions[currentTextIndex];
       
       if (isDeleting) {
-        // Deleting text
         currentCharIndex--;
         typingSpeed = 30;
       } else {
-        // Typing text
         currentCharIndex++;
         typingSpeed = 50;
       }
       
       typedTextRef.current.textContent = currentText.substring(0, currentCharIndex);
       
-      // If finished typing, pause before deleting
       if (!isDeleting && currentCharIndex === currentText.length) {
         isDeleting = true;
         typingSpeed = pauseTime;
       } 
-      // If finished deleting, move to next text
       else if (isDeleting && currentCharIndex === 0) {
         isDeleting = false;
         currentTextIndex = (currentTextIndex + 1) % typedTextOptions.length;
@@ -113,15 +106,12 @@ const HeroBanner = () => {
       setTimeout(type, typingSpeed);
     };
     
-    // Start typing
     setTimeout(type, 1000);
 
-    // Start autoplay
     if (isPlaying) {
       startAutoplay();
     }
 
-    // Cleanup function
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -129,7 +119,6 @@ const HeroBanner = () => {
     };
   }, [isPlaying]);
 
-  // Effect to update emblaApi and current slide
   useEffect(() => {
     if (emblaApi) {
       const onSelect = () => {
@@ -137,7 +126,6 @@ const HeroBanner = () => {
       };
       
       emblaApi.on('select', onSelect);
-      // Initial call to set first slide
       onSelect();
       
       return () => {
@@ -190,7 +178,6 @@ const HeroBanner = () => {
 
   return (
     <div className="h-screen w-full overflow-hidden relative">
-      {/* Main Carousel with direct embla-carousel for more control */}
       <div className="w-full h-full embla overflow-hidden" ref={emblaRef}>
         <div className="h-full flex">
           {slides.map((slide, index) => (
@@ -198,7 +185,6 @@ const HeroBanner = () => {
               key={slide.id} 
               className="h-full w-full flex-[0_0_100%] relative"
             >
-              {/* Background Image with zoom effect */}
               <div 
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-10000 scale-[1.02]"
                 style={{ 
@@ -208,10 +194,8 @@ const HeroBanner = () => {
                 }}
               />
               
-              {/* Color overlay with gradient */}
               <div className={`absolute inset-0 ${slide.gradient}`} />
               
-              {/* Content */}
               <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center z-10">
                 <div className="max-w-4xl mx-auto">
                   <div 
@@ -243,7 +227,6 @@ const HeroBanner = () => {
                       ref={typedTextRef} 
                       className={`text-xl md:text-3xl font-light block text-school-accent ${slide.textColor} [text-shadow:_0_1px_2px_rgba(0,0,0,0.4)]`}
                     >
-                      {/* Typed text will be inserted here by useEffect */}
                     </span>
                   </div>
                   
@@ -278,9 +261,7 @@ const HeroBanner = () => {
         </div>
       </div>
 
-      {/* Custom Navigation Controls */}
       <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-6 z-10">
-        {/* Play/Pause Button */}
         <button
           className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors"
           onClick={togglePlayPause}
@@ -289,7 +270,6 @@ const HeroBanner = () => {
           {isPlaying ? <Pause size={20} /> : <Play size={20} />}
         </button>
         
-        {/* Dots Navigation */}
         <div className="flex justify-center space-x-4">
           {slides.map((_, index) => (
             <button
@@ -305,7 +285,6 @@ const HeroBanner = () => {
           ))}
         </div>
         
-        {/* Arrow Navigation - Hidden on mobile for cleaner UI */}
         <div className="hidden md:flex gap-4">
           <button
             className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors"
@@ -324,7 +303,6 @@ const HeroBanner = () => {
         </div>
       </div>
 
-      {/* Scroll down indicator */}
       <div className="absolute bottom-6 left-0 right-0 flex justify-center z-10 animate-bounce">
         <button 
           onClick={scrollToContent}

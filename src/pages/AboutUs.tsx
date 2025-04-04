@@ -4,15 +4,44 @@ import { Layout } from '../components/layout/layout';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
+interface SchoolInfo {
+  schoolName: string;
+  tagline: string;
+}
+
+interface HistoryMilestone {
+  year: string;
+  event: string;
+}
+
+interface LeadershipMember {
+  id: number;
+  name: string;
+  position: string;
+  image: string;
+  message: string;
+}
+
+interface AdminTeamMember {
+  name: string;
+  position: string;
+  image: string;
+}
+
+interface Department {
+  name: string;
+  count: string;
+}
+
 const AboutUs = () => {
   const [loading, setLoading] = useState(true);
-  const [schoolInfo, setSchoolInfo] = useState({
+  const [schoolInfo, setSchoolInfo] = useState<SchoolInfo>({
     schoolName: "Campus Digital Gateway",
     tagline: "Empowering Young Minds Since 1995",
   });
   
   // School history milestones
-  const [historyMilestones, setHistoryMilestones] = useState([
+  const [historyMilestones, setHistoryMilestones] = useState<HistoryMilestone[]>([
     { year: '1995', event: 'Founded with a vision to provide quality education' },
     { year: '2000', event: 'Expanded to include secondary education' },
     { year: '2005', event: 'Added science and technical streams' },
@@ -22,7 +51,7 @@ const AboutUs = () => {
   ]);
 
   // Leadership team
-  const [leadership, setLeadership] = useState([
+  const [leadership, setLeadership] = useState<LeadershipMember[]>([
     {
       id: 1,
       name: 'Dr. Robert Johnson',
@@ -54,7 +83,7 @@ const AboutUs = () => {
   ]);
 
   // Admin team
-  const [adminTeam, setAdminTeam] = useState([
+  const [adminTeam, setAdminTeam] = useState<AdminTeamMember[]>([
     { name: 'Michael Robertson', position: 'Administrative Director', image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80' },
     { name: 'Sarah Williams', position: 'Admissions Coordinator', image: 'https://images.unsplash.com/photo-1614644147798-f8c0fc9da7f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80' },
     { name: 'James Parker', position: 'Finance Manager', image: 'https://images.unsplash.com/photo-1602459816722-c364d7797af7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80' },
@@ -62,7 +91,7 @@ const AboutUs = () => {
   ]);
 
   // Faculty departments
-  const [departments, setDepartments] = useState([
+  const [departments, setDepartments] = useState<Department[]>([
     { name: 'Science Department', count: '12 Faculty Members' },
     { name: 'Mathematics Department', count: '8 Faculty Members' },
     { name: 'Languages Department', count: '10 Faculty Members' },
@@ -78,20 +107,6 @@ const AboutUs = () => {
       setLoading(true);
       
       try {
-        // Fetch general settings
-        const { data: generalData } = await supabase
-          .from('settings')
-          .select('*')
-          .eq('category', 'general')
-          .single();
-        
-        if (generalData) {
-          setSchoolInfo({
-            schoolName: generalData.school_name || schoolInfo.schoolName,
-            tagline: generalData.tagline || schoolInfo.tagline,
-          });
-        }
-
         // Fetch about page content
         const { data: aboutData } = await supabase
           .from('about_content')
@@ -99,6 +114,20 @@ const AboutUs = () => {
           .eq('status', 'published');
         
         if (aboutData) {
+          // Process general information (school name and tagline)
+          const generalInfo = aboutData.find(item => item.title === 'General');
+          if (generalInfo && generalInfo.content) {
+            try {
+              const parsedInfo = JSON.parse(generalInfo.content);
+              setSchoolInfo({
+                schoolName: parsedInfo.schoolName || schoolInfo.schoolName,
+                tagline: parsedInfo.tagline || schoolInfo.tagline,
+              });
+            } catch (e) {
+              console.error('Failed to parse general info content:', e);
+            }
+          }
+          
           // Process history milestones
           const historyContent = aboutData.find(item => item.title === 'History');
           if (historyContent && historyContent.content) {

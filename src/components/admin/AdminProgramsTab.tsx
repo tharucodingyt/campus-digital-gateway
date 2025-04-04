@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,7 +99,7 @@ const AdminProgramsTab = () => {
   const handleAddProgram = async () => {
     try {
       // Convert comma-separated features to array
-      const features = typeof newProgram.features === 'string' 
+      const featuresArray: string[] = typeof newProgram.features === 'string' 
         ? newProgram.features
             .split(",")
             .map((feature) => feature.trim())
@@ -110,7 +111,7 @@ const AdminProgramsTab = () => {
           title: newProgram.title,
           description: newProgram.description,
           duration: newProgram.level,
-          requirements: JSON.stringify(features), // Store features as JSON string in requirements field
+          requirements: JSON.stringify(featuresArray), // Store features as JSON string in requirements field
           status: 'published'
         }
       ]).select();
@@ -156,6 +157,7 @@ const AdminProgramsTab = () => {
       
       // Handle different types of features input
       if (typeof editingProgram.features === 'string') {
+        // Fix the type error by asserting the type
         featuresArray = (editingProgram.features as unknown as string)
           .split(",")
           .map((feature) => feature.trim())
@@ -386,9 +388,10 @@ const AdminProgramsTab = () => {
                   ? editingProgram.features.join(", ")
                   : (editingProgram.features as unknown as string || '')}
                 onChange={(e) => {
+                  // Fix the type error by properly setting the string[] type
                   setEditingProgram({ 
                     ...editingProgram, 
-                    features: e.target.value 
+                    features: e.target.value.split(',').map(item => item.trim()) 
                   });
                 }}
               />

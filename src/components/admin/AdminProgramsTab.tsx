@@ -99,12 +99,10 @@ const AdminProgramsTab = () => {
   const handleAddProgram = async () => {
     try {
       // Convert comma-separated features to array
-      const featuresArray: string[] = typeof newProgram.features === 'string' 
-        ? newProgram.features
-            .split(",")
-            .map((feature) => feature.trim())
-            .filter((feature) => feature !== "")
-        : [];
+      const featuresArray: string[] = newProgram.features
+        .split(",")
+        .map((feature) => feature.trim())
+        .filter((feature) => feature !== "");
 
       const { data, error } = await supabase.from('programs').insert([
         {
@@ -157,7 +155,7 @@ const AdminProgramsTab = () => {
       
       // Handle different types of features input
       if (typeof editingProgram.features === 'string') {
-        // Fix the type error by asserting the type
+        // Convert string to array if needed
         featuresArray = (editingProgram.features as unknown as string)
           .split(",")
           .map((feature) => feature.trim())
@@ -386,9 +384,9 @@ const AdminProgramsTab = () => {
                 id="edit-features"
                 value={Array.isArray(editingProgram.features) 
                   ? editingProgram.features.join(", ")
-                  : (editingProgram.features as unknown as string || '')}
+                  : ""}
                 onChange={(e) => {
-                  // Fix the type error by properly setting the string[] type
+                  // Update features as an array
                   setEditingProgram({ 
                     ...editingProgram, 
                     features: e.target.value.split(',').map(item => item.trim()) 

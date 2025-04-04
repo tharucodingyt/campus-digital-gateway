@@ -108,12 +108,18 @@ const AboutUs = () => {
       
       try {
         // Fetch about page content
-        const { data: aboutData } = await supabase
+        const { data: aboutData, error } = await supabase
           .from('about_content')
           .select('*')
           .eq('status', 'published');
         
-        if (aboutData) {
+        if (error) {
+          console.error("Error fetching about page content:", error);
+          setLoading(false);
+          return;
+        }
+        
+        if (aboutData && aboutData.length > 0) {
           // Process general information (school name and tagline)
           const generalInfo = aboutData.find(item => item.title === 'General');
           if (generalInfo && generalInfo.content) {
@@ -215,9 +221,9 @@ const AboutUs = () => {
       {/* History Section */}
       <section className="py-12 bg-white">
         <div className="container-custom">
-          <h2 className="section-heading text-center">History of School</h2>
+          <h2 className="section-heading text-center">History of {schoolInfo.schoolName}</h2>
           <p className="text-center text-gray-700 mb-10 max-w-3xl mx-auto">
-            Learn about our founding and key milestones
+            {schoolInfo.tagline}
           </p>
           
           <div className="relative">

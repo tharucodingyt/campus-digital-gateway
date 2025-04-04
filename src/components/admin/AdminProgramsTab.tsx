@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -379,24 +378,20 @@ const AdminProgramsTab = () => {
             </div>
             <div className="space-y-2">
               <label htmlFor="edit-features" className="text-sm font-medium">
-                Features
+                Features (comma-separated)
               </label>
-              <Textarea
+              <Input
                 id="edit-features"
                 value={Array.isArray(editingProgram.features) 
                   ? editingProgram.features.join(", ")
-                  : editingProgram.features as string}
+                  : (editingProgram.features as unknown as string || '')}
                 onChange={(e) => {
                   setEditingProgram({ 
                     ...editingProgram, 
                     features: e.target.value 
                   });
                 }}
-                rows={2}
               />
-              <p className="text-xs text-gray-500">
-                Enter features separated by commas
-              </p>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">

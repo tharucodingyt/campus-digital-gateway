@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,15 +55,33 @@ const AdminProgramsTab = () => {
         return;
       }
 
-      const formattedPrograms = data.map(program => ({
-        id: program.id,
-        title: program.title,
-        level: program.duration || "",
-        description: program.description,
-        features: program.features ? 
-          (Array.isArray(program.features) ? program.features : Object.values(program.features)) : 
-          []
-      }));
+      const formattedPrograms = data.map(program => {
+        // Extract features from requirements field
+        let features: string[] = [];
+        try {
+          if (program.requirements) {
+            const parsed = JSON.parse(program.requirements);
+            if (Array.isArray(parsed)) {
+              features = parsed;
+            } else if (typeof parsed === 'object') {
+              features = Object.values(parsed);
+            }
+          }
+        } catch (e) {
+          // If requirements isn't valid JSON, treat it as comma-separated
+          if (typeof program.requirements === 'string') {
+            features = program.requirements.split(',').map(item => item.trim());
+          }
+        }
+        
+        return {
+          id: program.id,
+          title: program.title,
+          level: program.duration || "",
+          description: program.description,
+          features: features
+        };
+      });
       
       setPrograms(formattedPrograms);
     } catch (error) {
@@ -89,7 +108,7 @@ const AdminProgramsTab = () => {
           title: newProgram.title,
           description: newProgram.description,
           duration: newProgram.level,
-          features: features,
+          requirements: JSON.stringify(features), // Store features as JSON string in requirements field
           status: 'published'
         }
       ]).select();
@@ -131,14 +150,16 @@ const AdminProgramsTab = () => {
     if (!editingProgram) return;
 
     try {
-      let features;
+      let featuresArray: string[] = [];
+      
+      // Handle different types of features input
       if (typeof editingProgram.features === 'string') {
-        features = editingProgram.features
+        featuresArray = editingProgram.features
           .split(",")
           .map((feature) => feature.trim())
           .filter((feature) => feature !== "");
-      } else {
-        features = editingProgram.features;
+      } else if (Array.isArray(editingProgram.features)) {
+        featuresArray = editingProgram.features;
       }
 
       const { error } = await supabase
@@ -147,7 +168,7 @@ const AdminProgramsTab = () => {
           title: editingProgram.title,
           description: editingProgram.description,
           duration: editingProgram.level,
-          features: features
+          requirements: JSON.stringify(featuresArray) // Store as JSON string
         })
         .eq('id', editingProgram.id);
 

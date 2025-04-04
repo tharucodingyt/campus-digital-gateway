@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Layout } from "@/components/layout/Layout";
-import { supabase } from "@/integrations/supabase/client";
 import { Check, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+// Import Layout correctly
+import { Layout } from "@/components/layout/layout";
 
 interface Program {
   id: string;
@@ -36,17 +38,36 @@ const Programs = () => {
         }
 
         // Map the database fields to our Program interface
-        const formattedPrograms = data.map(program => ({
-          id: program.id,
-          title: program.title,
-          description: program.description,
-          duration: program.duration,
-          image_url: program.image_url,
-          features: program.features ? 
-            (Array.isArray(program.features) ? program.features : Object.values(program.features)) : 
-            [],
-          status: program.status
-        }));
+        const formattedPrograms = data.map(program => {
+          // Safely extract features from program.requirements
+          let features: string[] = [];
+          try {
+            // Check if requirements is a string and can be parsed as JSON
+            if (program.requirements) {
+              const parsed = JSON.parse(program.requirements);
+              if (Array.isArray(parsed)) {
+                features = parsed;
+              } else if (typeof parsed === 'object') {
+                features = Object.values(parsed);
+              }
+            }
+          } catch (e) {
+            // If requirements isn't valid JSON, treat it as a comma-separated list
+            if (typeof program.requirements === 'string') {
+              features = program.requirements.split(',').map(item => item.trim());
+            }
+          }
+
+          return {
+            id: program.id,
+            title: program.title,
+            description: program.description,
+            duration: program.duration,
+            image_url: program.image_url,
+            features: features,
+            status: program.status
+          };
+        });
 
         setPrograms(formattedPrograms);
       } catch (err: any) {

@@ -39,7 +39,7 @@ const Profile = () => {
         .from('profiles')
         .select('full_name, avatar_url')
         .eq('id', user.id)
-        .single();
+        .single() as any;
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -69,7 +69,7 @@ const Profile = () => {
           full_name: profileData.full_name,
           avatar_url: profileData.avatar_url,
           updated_at: new Date().toISOString(),
-        });
+        }) as any;
 
       if (error) {
         toast({

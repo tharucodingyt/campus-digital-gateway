@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
 import { 
@@ -10,39 +10,102 @@ import {
   CarouselPrevious 
 } from "@/components/ui/carousel";
 import AOS from 'aos';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  event_date: string;
+  created_at: string;
+  image_url?: string;
+  is_event: boolean;
+  category?: string;
+}
 
 const FeaturedNews = () => {
-  const newsItems = [
-    {
-      id: 1,
-      title: 'Annual Sports Day Announced',
-      date: 'March 15, 2023',
-      excerpt: 'Our annual sports day will be held on March 15th. All students are encouraged to participate in various events.',
-      image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=840&q=80',
-      category: 'Event',
-    },
-    {
-      id: 2,
-      title: 'Science Exhibition Winners',
-      date: 'February 28, 2023',
-      excerpt: 'Congratulations to our students who won the district-level science exhibition with their innovative projects.',
-      image: 'https://images.unsplash.com/photo-1564981797816-1043664bf78d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-      category: 'Achievement',
-    },
-    {
-      id: 3,
-      title: 'Parent-Teacher Meeting',
-      date: 'April 10, 2023',
-      excerpt: 'The next parent-teacher meeting will be held on April 10th. Parents are requested to attend.',
-      image: 'https://images.unsplash.com/photo-1577896852618-3b02a11df647?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
-      category: 'Notice',
-    },
-  ];
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Default placeholder image
+  const defaultImage = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=840&q=80';
 
   useEffect(() => {
     // Refresh AOS animations when component mounts
     AOS.refresh();
+    
+    fetchNewsItems();
   }, []);
+
+  const fetchNewsItems = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('news_events')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) {
+        console.error("Error fetching news items:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch news items. Using sample data.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const formattedNews = data.map(item => ({
+          ...item,
+          category: item.is_event ? 'Event' : 'News'
+        }));
+        setNewsItems(formattedNews);
+      }
+    } catch (error) {
+      console.error("Error fetching news items:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // If no news items are loaded yet, show a loading state
+  if (isLoading) {
+    return (
+      <section className="py-12">
+        <div className="container-custom">
+          <h2 className="section-heading text-center mb-12">Featured News & Events</h2>
+          <div className="text-center py-10">
+            <p>Loading featured news and events...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // If no news items are found after loading, show alternative content
+  if (newsItems.length === 0) {
+    return (
+      <section className="py-12">
+        <div className="container-custom">
+          <h2 className="section-heading text-center mb-12">Featured News & Events</h2>
+          <div className="text-center py-10">
+            <p>No news or events found. Check back soon for updates!</p>
+            <Link 
+              to="/events"
+              className="btn-primary inline-block mt-4 animate-pulse hover:animate-none hover:scale-105 transition-transform" 
+            >
+              Browse All News & Events
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12">
@@ -63,23 +126,29 @@ const FeaturedNews = () => {
                   <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 h-full">
                     <div className="h-48 overflow-hidden">
                       <img
-                        src={item.image}
+                        src={item.image_url || defaultImage}
                         alt={item.title}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = defaultImage;
+                        }}
                       />
                     </div>
                     <div className="p-6">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-xs font-semibold px-2 py-1 rounded bg-school-accent text-school-primary">
-                          {item.category}
+                          {item.is_event ? 'Event' : 'News'}
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
                           <Calendar size={14} className="mr-1" />
-                          {item.date}
+                          {item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
                         </div>
                       </div>
                       <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
-                      <p className="text-gray-600 mb-4">{item.excerpt}</p>
+                      <p className="text-gray-600 mb-4">
+                        {item.content.length > 80 ? `${item.content.substring(0, 80)}...` : item.content}
+                      </p>
                       <Link
                         to={`/events/${item.id}`}
                         className="text-school-secondary font-medium hover:text-school-primary transform transition-transform hover:translate-x-1"
@@ -105,12 +174,16 @@ const FeaturedNews = () => {
               key={`thumb-${item.id}`} 
               className="cursor-pointer hover:opacity-100 transition-opacity hover:scale-105 transform duration-300"
               data-aos="flip-up"
-              data-aos-delay={100 + (item.id * 50)}
+              data-aos-delay={100 + (Number(item.id) % 3) * 50}
             >
               <img 
-                src={item.image} 
+                src={item.image_url || defaultImage} 
                 alt={item.title} 
                 className="h-12 w-20 object-cover rounded"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = defaultImage;
+                }}
               />
             </div>
           ))}

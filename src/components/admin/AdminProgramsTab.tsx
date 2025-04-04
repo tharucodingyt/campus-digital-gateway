@@ -1,97 +1,219 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for programs
-const initialPrograms = [
-  {
-    id: "1",
-    name: "Elementary Education",
-    level: "Elementary",
-    description: "Comprehensive elementary education for grades K-5.",
-    features: ["Core curriculum", "Arts integration", "Physical education"],
-  },
-  {
-    id: "2",
-    name: "Middle School STEM",
-    level: "Middle School",
-    description: "Focused STEM program for middle school students with advanced math and science.",
-    features: ["Advanced Math", "Science Labs", "Technology Integration"],
-  },
-  {
-    id: "3",
-    name: "High School College Prep",
-    level: "High School",
-    description: "College preparatory program for high school students aiming for university admission.",
-    features: ["AP Courses", "College Counseling", "Research Projects"],
-  },
-];
+interface Program {
+  id: string;
+  title: string;
+  level: string;
+  description: string;
+  features: string[];
+  created_at?: string;
+  updated_at?: string;
+}
 
 const AdminProgramsTab = () => {
-  const [programs, setPrograms] = useState(initialPrograms);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [isAddingProgram, setIsAddingProgram] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingProgram, setEditingProgram] = useState<null | {
-    id: string;
-    name: string;
-    level: string;
-    description: string;
-    features: string[];
-  }>(null);
+  const [editingProgram, setEditingProgram] = useState<Program | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const [newProgram, setNewProgram] = useState({
-    name: "",
+    title: "",
     level: "",
     description: "",
     features: "",
   });
 
-  const handleAddProgram = () => {
-    const features = newProgram.features
-      .split(",")
-      .map((feature) => feature.trim())
-      .filter((feature) => feature !== "");
+  useEffect(() => {
+    fetchPrograms();
+  }, []);
 
-    const program = {
-      id: Date.now().toString(),
-      name: newProgram.name,
-      level: newProgram.level,
-      description: newProgram.description,
-      features,
-    };
+  const fetchPrograms = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('programs')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    setPrograms([...programs, program]);
-    setNewProgram({
-      name: "",
-      level: "",
-      description: "",
-      features: "",
-    });
-    setIsAddingProgram(false);
+      if (error) {
+        console.error("Error fetching programs:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch programs. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Convert JSONB features to string array if necessary
+      const formattedPrograms = data.map(program => ({
+        ...program,
+        features: program.features ? 
+          (Array.isArray(program.features) ? program.features : Object.values(program.features)) : 
+          []
+      }));
+      
+      setPrograms(formattedPrograms);
+    } catch (error) {
+      console.error("Error fetching programs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch programs. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleEditProgram = () => {
+  const handleAddProgram = async () => {
+    try {
+      const features = newProgram.features
+        .split(",")
+        .map((feature) => feature.trim())
+        .filter((feature) => feature !== "");
+
+      const { data, error } = await supabase.from('programs').insert([
+        {
+          title: newProgram.title,
+          description: newProgram.description,
+          duration: newProgram.level, // Using level as duration for now
+          features: features,
+          status: 'published'
+        }
+      ]).select();
+
+      if (error) {
+        console.error("Error adding program:", error);
+        toast({
+          title: "Error",
+          description: "Failed to add program. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Program added successfully.",
+      });
+
+      // Reset form and refresh programs list
+      setNewProgram({
+        title: "",
+        level: "",
+        description: "",
+        features: "",
+      });
+      setIsAddingProgram(false);
+      fetchPrograms();
+    } catch (error) {
+      console.error("Error adding program:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add program. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditProgram = async () => {
     if (!editingProgram) return;
 
-    const updatedPrograms = programs.map((program) =>
-      program.id === editingProgram.id ? editingProgram : program
-    );
+    try {
+      let features;
+      if (typeof editingProgram.features === 'string') {
+        features = editingProgram.features
+          .split(",")
+          .map((feature) => feature.trim())
+          .filter((feature) => feature !== "");
+      } else {
+        features = editingProgram.features;
+      }
 
-    setPrograms(updatedPrograms);
-    setEditingProgram(null);
+      const { error } = await supabase
+        .from('programs')
+        .update({
+          title: editingProgram.title,
+          description: editingProgram.description,
+          duration: editingProgram.level, // Using level as duration for now
+          features: features
+        })
+        .eq('id', editingProgram.id);
+
+      if (error) {
+        console.error("Error updating program:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update program. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Program updated successfully.",
+      });
+
+      setEditingProgram(null);
+      fetchPrograms();
+    } catch (error) {
+      console.error("Error updating program:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update program. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteProgram = (id: string) => {
-    setPrograms(programs.filter((program) => program.id !== id));
+  const handleDeleteProgram = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('programs')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error("Error deleting program:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete program. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Program deleted successfully.",
+      });
+
+      fetchPrograms();
+    } catch (error) {
+      console.error("Error deleting program:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete program. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredPrograms = programs.filter((program) =>
-    program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    program.level.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    program.level?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     program.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -126,9 +248,9 @@ const AdminProgramsTab = () => {
               </label>
               <Input
                 id="name"
-                value={newProgram.name}
+                value={newProgram.title}
                 onChange={(e) =>
-                  setNewProgram({ ...newProgram, name: e.target.value })
+                  setNewProgram({ ...newProgram, title: e.target.value })
                 }
                 placeholder="e.g., Advanced Mathematics"
               />
@@ -200,9 +322,9 @@ const AdminProgramsTab = () => {
               </label>
               <Input
                 id="edit-name"
-                value={editingProgram.name}
+                value={editingProgram.title}
                 onChange={(e) =>
-                  setEditingProgram({ ...editingProgram, name: e.target.value })
+                  setEditingProgram({ ...editingProgram, title: e.target.value })
                 }
               />
             </div>
@@ -237,13 +359,14 @@ const AdminProgramsTab = () => {
               </label>
               <Textarea
                 id="edit-features"
-                value={editingProgram.features.join(", ")}
+                value={typeof editingProgram.features === 'string' 
+                  ? editingProgram.features
+                  : editingProgram.features.join(", ")}
                 onChange={(e) => {
-                  const features = e.target.value
-                    .split(",")
-                    .map((feature) => feature.trim())
-                    .filter((feature) => feature !== "");
-                  setEditingProgram({ ...editingProgram, features });
+                  setEditingProgram({ 
+                    ...editingProgram, 
+                    features: e.target.value 
+                  });
                 }}
                 rows={2}
               />
@@ -261,47 +384,57 @@ const AdminProgramsTab = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredPrograms.map((program) => (
-          <Card key={program.id}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>{program.name}</CardTitle>
-                  <CardDescription>{program.level}</CardDescription>
+      {isLoading ? (
+        <div className="text-center py-10">
+          <p>Loading programs...</p>
+        </div>
+      ) : filteredPrograms.length === 0 ? (
+        <div className="text-center py-10">
+          <p>No programs found. Create your first program by clicking "Add Program" above.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredPrograms.map((program) => (
+            <Card key={program.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>{program.title}</CardTitle>
+                    <CardDescription>{program.level}</CardDescription>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingProgram(program)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteProgram(program.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingProgram(program)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteProgram(program.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm mb-2">{program.description}</p>
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold mb-2">Features:</h4>
+                  <ul className="list-disc list-inside text-sm">
+                    {program.features && program.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm mb-2">{program.description}</p>
-              <div className="mt-4">
-                <h4 className="text-sm font-semibold mb-2">Features:</h4>
-                <ul className="list-disc list-inside text-sm">
-                  {program.features.map((feature, index) => (
-                    <li key={index}>{feature}</li>
-                  ))}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

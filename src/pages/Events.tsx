@@ -1,85 +1,107 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { Calendar, Search } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Event {
+  id: string;
+  title: string;
+  content: string;
+  event_date: string;
+  image_url?: string;
+  is_event: boolean;
+  created_at: string;
+  updated_at: string;
+  status: 'draft' | 'published' | 'archived';
+  tags?: string[];
+  category?: string;
+}
 
 const Events = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [newsItems, setNewsItems] = useState<Event[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<{ date: string; event: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const newsItems = [
-    {
-      id: 1,
-      title: 'Annual Sports Day Announced',
-      date: 'March 15, 2023',
-      content: 'Our annual sports day will be held on March 15th. All students are encouraged to participate in various events including track and field, team sports, and individual competitions. Parents are invited to attend and cheer for their children. Refreshments will be provided.',
-      image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=840&q=80',
-      category: 'Event',
-      tags: ['sports', 'competition', 'annual event'],
-    },
-    {
-      id: 2,
-      title: 'Science Exhibition Winners',
-      date: 'February 28, 2023',
-      content: 'Congratulations to our students who won the district-level science exhibition with their innovative projects. The winning projects included a solar-powered water purifier, a biodegradable plastic alternative, and an automated plant watering system. These students will now represent our school at the state-level competition.',
-      image: 'https://images.unsplash.com/photo-1564981797816-1043664bf78d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-      category: 'Achievement',
-      tags: ['science', 'exhibition', 'awards'],
-    },
-    {
-      id: 3,
-      title: 'Parent-Teacher Meeting Scheduled',
-      date: 'April 10, 2023',
-      content: 'The next parent-teacher meeting will be held on April 10th. Parents are requested to attend to discuss their child\'s academic progress and any concerns they may have. Time slots will be assigned and communicated via email. Please confirm your attendance by April 5th.',
-      image: 'https://images.unsplash.com/photo-1577896852618-3b02a11df647?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
-      category: 'Notice',
-      tags: ['meeting', 'parents', 'academic'],
-    },
-    {
-      id: 4,
-      title: 'New Computer Lab Inauguration',
-      date: 'January 15, 2023',
-      content: 'We are pleased to announce the inauguration of our new state-of-the-art computer lab with 30 latest computers, high-speed internet, and advanced software. This lab will enhance our technical education program and provide students with hands-on experience in programming, design, and digital skills.',
-      image: 'https://images.unsplash.com/photo-1581092335397-9583eb92d232?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
-      category: 'Announcement',
-      tags: ['facility', 'technology', 'inauguration'],
-    },
-    {
-      id: 5,
-      title: 'Cultural Fest 2023',
-      date: 'May 20, 2023',
-      content: 'Mark your calendars for our annual Cultural Fest on May 20th. The event will feature performances by students showcasing various cultural dances, music, drama, and art exhibitions. There will also be food stalls representing different cuisines. Entry is free for parents and family members.',
-      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1769&q=80',
-      category: 'Event',
-      tags: ['cultural', 'performance', 'annual event'],
-    },
-    {
-      id: 6,
-      title: 'New Faculty Members Join Our Team',
-      date: 'December 5, 2022',
-      content: 'We are delighted to welcome five new faculty members who have joined our teaching staff. They bring expertise in Mathematics, Science, English Literature, Computer Science, and Physical Education. Each of them has extensive teaching experience and impressive academic credentials.',
-      image: 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1674&q=80',
-      category: 'Announcement',
-      tags: ['faculty', 'staff', 'academic'],
-    },
-  ];
+  // Default placeholder image
+  const defaultImage = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1771&q=80';
 
-  const upcomingEvents = [
-    { date: 'March 15, 2023', event: 'Annual Sports Day' },
-    { date: 'April 10, 2023', event: 'Parent-Teacher Meeting' },
-    { date: 'April 22, 2023', event: 'Earth Day Celebration' },
-    { date: 'May 5, 2023', event: 'Mathematics Olympiad' },
-    { date: 'May 20, 2023', event: 'Cultural Fest 2023' },
-    { date: 'June 15, 2023', event: 'End of Academic Year Ceremony' },
-  ];
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('news_events')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching events:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch events data. Using sample data.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.length > 0) {
+        // Process and format events data
+        const formattedEvents = data.map(event => ({
+          ...event,
+          // Generate tags from content if they don't exist
+          tags: ['school', 'education', event.is_event ? 'event' : 'news'],
+          // Set a default category based on is_event
+          category: event.is_event ? 'Event' : 'News'
+        }));
+        
+        setNewsItems(formattedEvents);
+        
+        // Extract upcoming events (events with future dates)
+        const today = new Date();
+        const upcoming = formattedEvents
+          .filter(event => event.is_event && new Date(event.event_date) >= today)
+          .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
+          .slice(0, 6)
+          .map(event => ({
+            date: new Date(event.event_date).toLocaleDateString(),
+            event: event.title
+          }));
+        
+        setUpcomingEvents(upcoming);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch events data.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredNews = newsItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = 
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
     
-    const matchesFilter = activeFilter === 'all' || item.category.toLowerCase() === activeFilter.toLowerCase();
+    const matchesFilter = 
+      activeFilter === 'all' || 
+      (activeFilter === 'event' && item.is_event) || 
+      (activeFilter === 'news' && !item.is_event) ||
+      item.category?.toLowerCase() === activeFilter.toLowerCase();
     
     return matchesSearch && matchesFilter;
   });
@@ -117,7 +139,7 @@ const Events = () => {
               
               {/* Category Filters */}
               <div className="flex flex-wrap gap-2">
-                {['all', 'event', 'announcement', 'achievement', 'notice'].map((filter) => (
+                {['all', 'event', 'news'].map((filter) => (
                   <button
                     key={filter}
                     className={`px-4 py-2 rounded-md transition-colors ${
@@ -143,7 +165,11 @@ const Events = () => {
               <div className="lg:col-span-2">
                 <h2 className="section-heading mb-8">Latest News & Updates</h2>
                 
-                {filteredNews.length === 0 ? (
+                {isLoading ? (
+                  <div className="bg-white rounded-lg shadow-md p-8 text-center">
+                    <p className="text-gray-600">Loading news and events...</p>
+                  </div>
+                ) : filteredNews.length === 0 ? (
                   <div className="bg-white rounded-lg shadow-md p-8 text-center">
                     <p className="text-gray-600">No results found for your search. Please try different keywords or filters.</p>
                   </div>
@@ -155,31 +181,37 @@ const Events = () => {
                           <div className="md:flex-shrink-0">
                             <img
                               className="h-48 w-full md:h-full md:w-48 object-cover"
-                              src={item.image}
+                              src={item.image_url || defaultImage}
                               alt={item.title}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = defaultImage;
+                              }}
                             />
                           </div>
                           <div className="p-6">
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-xs font-semibold px-2 py-1 rounded bg-school-accent text-school-primary">
-                                {item.category}
+                                {item.is_event ? 'Event' : 'News'}
                               </span>
                               <div className="flex items-center text-gray-500 text-sm">
                                 <Calendar size={14} className="mr-1" />
-                                {item.date}
+                                {item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
                               </div>
                             </div>
                             <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
                             <p className="text-gray-600 mb-4">
                               {item.content.length > 150 ? item.content.substring(0, 150) + '...' : item.content}
                             </p>
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {item.tags.map((tag, index) => (
-                                <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                  #{tag}
-                                </span>
-                              ))}
-                            </div>
+                            {item.tags && (
+                              <div className="flex flex-wrap gap-2 mb-4">
+                                {item.tags.map((tag, index) => (
+                                  <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                             <a
                               href={`/events/${item.id}`}
                               className="text-school-secondary font-medium hover:text-school-primary"
@@ -200,18 +232,22 @@ const Events = () => {
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-xl font-semibold text-school-primary mb-4">Upcoming Events</h3>
                   <div id="calendar" className="space-y-4">
-                    {upcomingEvents.map((event, index) => (
-                      <div key={index} className="flex items-start">
-                        <div className="flex-shrink-0 mr-3">
-                          <div className="bg-school-accent text-school-primary text-xs font-semibold text-center rounded p-1 w-16">
-                            {event.date.split(', ')[0]}
+                    {upcomingEvents.length > 0 ? (
+                      upcomingEvents.map((event, index) => (
+                        <div key={index} className="flex items-start">
+                          <div className="flex-shrink-0 mr-3">
+                            <div className="bg-school-accent text-school-primary text-xs font-semibold text-center rounded p-1 w-16">
+                              {event.date}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-medium">{event.event}</p>
                           </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{event.event}</p>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-gray-600">No upcoming events scheduled.</p>
+                    )}
                   </div>
                 </div>
                 

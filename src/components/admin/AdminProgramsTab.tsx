@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,9 +54,11 @@ const AdminProgramsTab = () => {
         return;
       }
 
-      // Convert JSONB features to string array if necessary
       const formattedPrograms = data.map(program => ({
-        ...program,
+        id: program.id,
+        title: program.title,
+        level: program.duration || "",
+        description: program.description,
         features: program.features ? 
           (Array.isArray(program.features) ? program.features : Object.values(program.features)) : 
           []
@@ -87,7 +88,7 @@ const AdminProgramsTab = () => {
         {
           title: newProgram.title,
           description: newProgram.description,
-          duration: newProgram.level, // Using level as duration for now
+          duration: newProgram.level,
           features: features,
           status: 'published'
         }
@@ -108,7 +109,6 @@ const AdminProgramsTab = () => {
         description: "Program added successfully.",
       });
 
-      // Reset form and refresh programs list
       setNewProgram({
         title: "",
         level: "",
@@ -146,7 +146,7 @@ const AdminProgramsTab = () => {
         .update({
           title: editingProgram.title,
           description: editingProgram.description,
-          duration: editingProgram.level, // Using level as duration for now
+          duration: editingProgram.level,
           features: features
         })
         .eq('id', editingProgram.id);
@@ -359,9 +359,9 @@ const AdminProgramsTab = () => {
               </label>
               <Textarea
                 id="edit-features"
-                value={typeof editingProgram.features === 'string' 
-                  ? editingProgram.features
-                  : editingProgram.features.join(", ")}
+                value={Array.isArray(editingProgram.features) 
+                  ? editingProgram.features.join(", ")
+                  : editingProgram.features}
                 onChange={(e) => {
                   setEditingProgram({ 
                     ...editingProgram, 

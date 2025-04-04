@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -95,7 +94,6 @@ const Profile = () => {
     }
   }
 
-  // Redirect if not logged in
   if (!isLoading && !user) {
     return <Navigate to="/login" />;
   }

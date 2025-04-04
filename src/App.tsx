@@ -11,7 +11,6 @@ import Programs from "./pages/Programs";
 import Admissions from "./pages/Admissions";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
-import Login from "./pages/Login";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
@@ -33,7 +32,8 @@ const App = () => (
             <Route path="/admissions" element={<Admissions />} />
             <Route path="/events" element={<Events />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Auth />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Auth />} /> {/* Add this line to support both paths */}
             <Route path="/admin" element={<Admin />} />
             <Route path="/profile" element={<Profile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

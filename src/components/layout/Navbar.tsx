@@ -10,6 +10,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import { NavbarAuth } from "@/components/ui/navbar-auth";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -282,9 +283,7 @@ const Navbar = () => {
               </NavigationMenuList>
             </NavigationMenu>
             
-            <Link to="/login" className="ml-4 btn-primary hover-scale">
-              Login
-            </Link>
+            <NavbarAuth />
           </div>
 
           <div className="md:hidden flex items-center">
@@ -412,11 +411,11 @@ const Navbar = () => {
               ))}
               
               <Link
-                to="/login"
+                to="/auth"
                 className="block px-3 py-2 text-base font-medium text-school-primary hover:bg-school-accent rounded-md transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Login
+                Admin Login
               </Link>
             </div>
           </div>

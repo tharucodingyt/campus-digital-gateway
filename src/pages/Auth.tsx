@@ -56,13 +56,16 @@ const Auth = () => {
 
   // Redirect if already logged in
   if (user && !isLoading) {
+    console.log("User is logged in, redirecting to /");
     return <Navigate to="/" />;
   }
 
   const handleLogin = async (data: AuthForm) => {
     setIsSubmitting(true);
     try {
+      console.log("Attempting to sign in with:", data.email);
       await signIn(data.email, data.password);
+      console.log("Sign-in successful, navigating to /");
       navigate("/");
     } catch (error) {
       console.error("Login error:", error);
@@ -74,7 +77,9 @@ const Auth = () => {
   const handleRegister = async (data: AuthForm) => {
     setIsSubmitting(true);
     try {
+      console.log("Attempting to register with:", data.email);
       await signUp(data.email, data.password);
+      console.log("Registration successful");
       loginForm.reset();
       registerForm.reset();
     } catch (error) {
@@ -92,6 +97,8 @@ const Auth = () => {
     );
   }
 
+  console.log("Rendering Auth page");
+  
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
       <Card className="w-full max-w-md">

@@ -46,17 +46,7 @@ const EventsSection = () => {
         .select('*')
         .eq('status', 'published');
       
-      // Filter based on section
-      if (section === 'news') {
-        query = query.eq('is_event', false);
-      } else if (section === 'calendar') {
-        query = query.eq('is_event', true);
-      } else if (section === 'gallery') {
-        // For gallery, we want items with images
-        query = query.not('image_url', 'is', null);
-      }
-      
-      // Execute query
+      // Execute query - filtering will be done client-side
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
@@ -71,15 +61,36 @@ const EventsSection = () => {
 
       if (data && data.length > 0) {
         // Process and format events data
-        const formattedEvents = data.map(event => ({
-          ...event,
-          // Generate tags from content if they don't exist
-          tags: ['school', 'education', event.is_event ? 'event' : 'news'],
-          // Set a default category based on is_event
-          category: event.is_event ? 'Event' : 'News'
-        }));
+        const formattedEvents = data.map(event => {
+          // Try to extract category from content
+          let category = event.is_event ? "calendar" : "news"; // Default category
+          
+          // Check if there's a category in a JSON format or as text
+          try {
+            if (event.content.includes("category:")) {
+              const match = event.content.match(/category:([a-zA-Z]+)/);
+              if (match && match[1]) {
+                category = match[1].toLowerCase();
+              }
+            }
+          } catch (e) {
+            // Use default category if extraction fails
+          }
+          
+          return {
+            ...event,
+            tags: ['school', 'education', event.is_event ? 'event' : 'news'],
+            category: category
+          };
+        });
         
-        setNewsItems(formattedEvents);
+        // If a section is specified, filter events by category
+        let filteredEvents = formattedEvents;
+        if (section) {
+          filteredEvents = formattedEvents.filter(event => event.category === section);
+        }
+        
+        setNewsItems(filteredEvents);
         
         // Extract upcoming events (events with future dates)
         const today = new Date();
@@ -176,7 +187,7 @@ const EventsSection = () => {
                     <div className="p-6">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-xs font-semibold px-2 py-1 rounded bg-school-accent text-school-primary">
-                          {item.is_event ? 'Event' : 'News'}
+                          {item.category || (item.is_event ? 'Event' : 'News')}
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
                           <Calendar size={14} className="mr-1" />

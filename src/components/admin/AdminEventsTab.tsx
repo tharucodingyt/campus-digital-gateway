@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pencil, Trash2, Plus, Calendar, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +17,7 @@ interface Event {
   content: string;
   image_url: string;
   is_event: boolean;
-  category?: string;
+  category: string;
   created_at?: string;
   updated_at?: string;
   status: 'draft' | 'published' | 'archived';
@@ -27,16 +29,25 @@ const AdminEventsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
   const { toast } = useToast();
 
   const [newEvent, setNewEvent] = useState({
     title: "",
     event_date: "",
-    category: "",
+    category: "news", // Default category
     content: "",
     image_url: "",
     is_event: true,
   });
+
+  // Event categories
+  const eventCategories = [
+    { value: "news", label: "News" },
+    { value: "calendar", label: "Calendar Events" },
+    { value: "gallery", label: "Gallery" },
+    { value: "newsletter", label: "Newsletter" }
+  ];
 
   useEffect(() => {
     fetchEvents();
@@ -60,7 +71,38 @@ const AdminEventsTab = () => {
         return;
       }
 
-      setEvents(data || []);
+      // Process events data: extract category from content if possible
+      const formattedEvents = data.map(event => {
+        // Try to extract category from event
+        let category = "news"; // Default category
+        
+        if (event.is_event) {
+          category = "calendar";
+        }
+        
+        // Check if there's a category in a JSON format within the content
+        try {
+          const contentObj = JSON.parse(event.content);
+          if (contentObj && contentObj.category) {
+            category = contentObj.category;
+          }
+        } catch (e) {
+          // If content is not JSON, check for a category tag
+          if (event.content && event.content.includes("category:")) {
+            const match = event.content.match(/category:([a-zA-Z]+)/);
+            if (match && match[1]) {
+              category = match[1].toLowerCase();
+            }
+          }
+        }
+        
+        return {
+          ...event,
+          category
+        };
+      });
+
+      setEvents(formattedEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
       toast({
@@ -75,13 +117,21 @@ const AdminEventsTab = () => {
 
   const handleAddEvent = async () => {
     try {
+      // Prepare content with category
+      let finalContent = newEvent.content;
+      
+      // Add category as metadata in the content
+      if (!finalContent.includes("category:")) {
+        finalContent = `${finalContent}\n\ncategory:${newEvent.category}`;
+      }
+      
       const { data, error } = await supabase.from('news_events').insert([
         {
           title: newEvent.title,
           event_date: newEvent.event_date,
-          content: newEvent.content,
+          content: finalContent,
           image_url: newEvent.image_url,
-          is_event: newEvent.is_event,
+          is_event: newEvent.category === "calendar", // Set is_event based on category
           status: 'published'
         }
       ]).select();
@@ -105,7 +155,7 @@ const AdminEventsTab = () => {
       setNewEvent({
         title: "",
         event_date: "",
-        category: "",
+        category: "news",
         content: "",
         image_url: "",
         is_event: true,
@@ -126,14 +176,24 @@ const AdminEventsTab = () => {
     if (!editingEvent) return;
 
     try {
+      // Prepare content with category
+      let finalContent = editingEvent.content;
+      
+      // Update or add category as metadata in the content
+      if (finalContent.includes("category:")) {
+        finalContent = finalContent.replace(/category:[a-zA-Z]+/, `category:${editingEvent.category}`);
+      } else {
+        finalContent = `${finalContent}\n\ncategory:${editingEvent.category}`;
+      }
+      
       const { error } = await supabase
         .from('news_events')
         .update({
           title: editingEvent.title,
           event_date: editingEvent.event_date,
-          content: editingEvent.content,
+          content: finalContent,
           image_url: editingEvent.image_url,
-          is_event: editingEvent.is_event
+          is_event: editingEvent.category === "calendar" // Set is_event based on category
         })
         .eq('id', editingEvent.id);
 
@@ -197,39 +257,70 @@ const AdminEventsTab = () => {
     }
   };
 
-  const filteredEvents = events.filter((event) =>
-    event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEvents = events.filter((event) => {
+    // Filter by search term
+    const matchesSearch = 
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.content.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by active tab/category
+    const matchesCategory = 
+      activeTab === "all" || 
+      event.category === activeTab;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="relative w-64">
+      {/* Category Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex justify-between items-center">
+          <TabsList className="inline-flex h-10">
+            <TabsTrigger value="all">All</TabsTrigger>
+            {eventCategories.map(category => (
+              <TabsTrigger key={category.value} value={category.value}>
+                {category.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <Button onClick={() => setIsAddingEvent(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Content
+          </Button>
+        </div>
+
+        <div className="relative w-64 mb-4">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder="Search events"
+            placeholder="Search content"
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button onClick={() => setIsAddingEvent(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Event
-        </Button>
-      </div>
+
+        <TabsContent value="all" className="space-y-4">
+          {/* Events list will be rendered here */}
+        </TabsContent>
+
+        {eventCategories.map(category => (
+          <TabsContent key={category.value} value={category.value} className="space-y-4">
+            {/* Category-specific events will be rendered here */}
+          </TabsContent>
+        ))}
+      </Tabs>
 
       {isAddingEvent && (
         <Card>
           <CardHeader>
-            <CardTitle>Add New Event</CardTitle>
+            <CardTitle>Add New Content</CardTitle>
             <CardDescription>Create a new event or news item</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="title" className="text-sm font-medium">
-                Event Title
+                Title
               </label>
               <Input
                 id="title"
@@ -240,35 +331,54 @@ const AdminEventsTab = () => {
                 placeholder="e.g., Annual Science Fair"
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="date" className="text-sm font-medium">
-                Date
-              </label>
-              <Input
-                id="date"
-                type="date"
-                value={newEvent.event_date}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, event_date: e.target.value })
-                }
-              />
-            </div>
+
             <div className="space-y-2">
               <label htmlFor="category" className="text-sm font-medium">
                 Category
               </label>
-              <Input
-                id="category"
-                value={newEvent.category}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, category: e.target.value })
-                }
-                placeholder="e.g., Event, Notice, Achievement"
-              />
+              <Select 
+                value={newEvent.category} 
+                onValueChange={(value) => {
+                  setNewEvent({ 
+                    ...newEvent, 
+                    category: value,
+                    is_event: value === "calendar" 
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {eventCategories.map(category => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Show date field only for calendar events */}
+            {newEvent.category === "calendar" && (
+              <div className="space-y-2">
+                <label htmlFor="date" className="text-sm font-medium">
+                  Date
+                </label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={newEvent.event_date}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, event_date: e.target.value })
+                  }
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <label htmlFor="description" className="text-sm font-medium">
-                Description
+                Description / Content
               </label>
               <Textarea
                 id="description"
@@ -276,7 +386,7 @@ const AdminEventsTab = () => {
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, content: e.target.value })
                 }
-                placeholder="Describe the event"
+                placeholder="Enter content here"
                 rows={3}
               />
             </div>
@@ -298,7 +408,7 @@ const AdminEventsTab = () => {
             <Button variant="outline" onClick={() => setIsAddingEvent(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddEvent}>Save Event</Button>
+            <Button onClick={handleAddEvent}>Save</Button>
           </CardFooter>
         </Card>
       )}
@@ -306,13 +416,13 @@ const AdminEventsTab = () => {
       {editingEvent && (
         <Card>
           <CardHeader>
-            <CardTitle>Edit Event</CardTitle>
-            <CardDescription>Update event details</CardDescription>
+            <CardTitle>Edit Content</CardTitle>
+            <CardDescription>Update content details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="edit-title" className="text-sm font-medium">
-                Event Title
+                Title
               </label>
               <Input
                 id="edit-title"
@@ -322,22 +432,54 @@ const AdminEventsTab = () => {
                 }
               />
             </div>
+
             <div className="space-y-2">
-              <label htmlFor="edit-date" className="text-sm font-medium">
-                Date
+              <label htmlFor="edit-category" className="text-sm font-medium">
+                Category
               </label>
-              <Input
-                id="edit-date"
-                type="date"
-                value={editingEvent.event_date?.split('T')[0] || ''}
-                onChange={(e) =>
-                  setEditingEvent({ ...editingEvent, event_date: e.target.value })
-                }
-              />
+              <Select 
+                value={editingEvent.category} 
+                onValueChange={(value) => {
+                  setEditingEvent({ 
+                    ...editingEvent, 
+                    category: value,
+                    is_event: value === "calendar" 
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {eventCategories.map(category => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Show date field only for calendar events */}
+            {editingEvent.category === "calendar" && (
+              <div className="space-y-2">
+                <label htmlFor="edit-date" className="text-sm font-medium">
+                  Date
+                </label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editingEvent.event_date?.split('T')[0] || ''}
+                  onChange={(e) =>
+                    setEditingEvent({ ...editingEvent, event_date: e.target.value })
+                  }
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <label htmlFor="edit-description" className="text-sm font-medium">
-                Description
+                Description / Content
               </label>
               <Textarea
                 id="edit-description"
@@ -365,18 +507,18 @@ const AdminEventsTab = () => {
             <Button variant="outline" onClick={() => setEditingEvent(null)}>
               Cancel
             </Button>
-            <Button onClick={handleEditEvent}>Update Event</Button>
+            <Button onClick={handleEditEvent}>Update</Button>
           </CardFooter>
         </Card>
       )}
 
       {isLoading ? (
         <div className="text-center py-10">
-          <p>Loading events...</p>
+          <p>Loading content...</p>
         </div>
       ) : filteredEvents.length === 0 ? (
         <div className="text-center py-10">
-          <p>No events found. Create your first event by clicking "Add Event" above.</p>
+          <p>No content found. Create your first item by clicking "Add Content" above.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
@@ -400,10 +542,14 @@ const AdminEventsTab = () => {
                       <div>
                         <CardTitle>{event.title}</CardTitle>
                         <CardDescription className="flex items-center mt-1">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {event.event_date ? new Date(event.event_date).toLocaleDateString() : 'No date'}
+                          {event.category === "calendar" && (
+                            <>
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {event.event_date ? new Date(event.event_date).toLocaleDateString() : 'No date'}
+                            </>
+                          )}
                           <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 rounded-full">
-                            {event.is_event ? 'Event' : 'News'}
+                            {eventCategories.find(cat => cat.value === event.category)?.label || event.category}
                           </span>
                         </CardDescription>
                       </div>

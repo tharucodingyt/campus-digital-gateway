@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pencil, Trash2, Plus, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +18,7 @@ interface Program {
   features: string[];
   created_at?: string;
   updated_at?: string;
+  category?: string;
 }
 
 const AdminProgramsTab = () => {
@@ -24,6 +27,7 @@ const AdminProgramsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
   const { toast } = useToast();
 
   const [newProgram, setNewProgram] = useState({
@@ -31,7 +35,17 @@ const AdminProgramsTab = () => {
     level: "",
     description: "",
     features: "",
+    category: "general", // Default category
   });
+
+  // Program categories
+  const programCategories = [
+    { value: "technical", label: "Technical Programs" },
+    { value: "science", label: "Science Programs" },
+    { value: "general", label: "General Education" },
+    { value: "primary", label: "Primary Education" },
+    { value: "secondary", label: "Secondary Education" },
+  ];
 
   useEffect(() => {
     fetchPrograms();
@@ -74,12 +88,26 @@ const AdminProgramsTab = () => {
           }
         }
         
+        // Extract category from requirements if it exists, otherwise use default
+        let category = "general";
+        try {
+          if (program.requirements) {
+            const parsed = JSON.parse(program.requirements);
+            if (parsed && parsed.category) {
+              category = parsed.category;
+            }
+          }
+        } catch (e) {
+          // Default to general if we can't extract category
+        }
+        
         return {
           id: program.id,
           title: program.title,
           level: program.duration || "",
           description: program.description,
-          features: features
+          features: features,
+          category: category
         };
       });
       
@@ -104,12 +132,18 @@ const AdminProgramsTab = () => {
         .map((feature) => feature.trim())
         .filter((feature) => feature !== "");
 
+      // Create a requirements object that includes both features and category
+      const requirements = {
+        features: featuresArray,
+        category: newProgram.category
+      };
+
       const { data, error } = await supabase.from('programs').insert([
         {
           title: newProgram.title,
           description: newProgram.description,
           duration: newProgram.level,
-          requirements: JSON.stringify(featuresArray), // Store features as JSON string in requirements field
+          requirements: JSON.stringify(requirements), // Store features and category
           status: 'published'
         }
       ]).select();
@@ -134,6 +168,7 @@ const AdminProgramsTab = () => {
         level: "",
         description: "",
         features: "",
+        category: "general",
       });
       setIsAddingProgram(false);
       fetchPrograms();
@@ -164,13 +199,19 @@ const AdminProgramsTab = () => {
         featuresArray = editingProgram.features;
       }
 
+      // Create a requirements object that includes both features and category
+      const requirements = {
+        features: featuresArray,
+        category: editingProgram.category || "general"
+      };
+
       const { error } = await supabase
         .from('programs')
         .update({
           title: editingProgram.title,
           description: editingProgram.description,
           duration: editingProgram.level,
-          requirements: JSON.stringify(featuresArray) // Store as JSON string
+          requirements: JSON.stringify(requirements) // Store features and category
         })
         .eq('id', editingProgram.id);
 
@@ -234,16 +275,41 @@ const AdminProgramsTab = () => {
     }
   };
 
-  const filteredPrograms = programs.filter((program) =>
-    program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    program.level?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    program.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPrograms = programs.filter((program) => {
+    // Filter by search term
+    const matchesSearch = 
+      program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      program.level?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      program.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by active tab/category
+    const matchesCategory = 
+      activeTab === "all" || 
+      program.category === activeTab;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="relative w-64">
+      {/* Category Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex justify-between items-center">
+          <TabsList className="inline-flex h-10">
+            <TabsTrigger value="all">All Programs</TabsTrigger>
+            {programCategories.map(category => (
+              <TabsTrigger key={category.value} value={category.value}>
+                {category.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <Button onClick={() => setIsAddingProgram(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Program
+          </Button>
+        </div>
+
+        <div className="relative w-64 mb-4">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             placeholder="Search programs"
@@ -252,11 +318,17 @@ const AdminProgramsTab = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button onClick={() => setIsAddingProgram(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Program
-        </Button>
-      </div>
+
+        <TabsContent value="all" className="space-y-4">
+          {/* Programs list will be rendered here */}
+        </TabsContent>
+
+        {programCategories.map(category => (
+          <TabsContent key={category.value} value={category.value} className="space-y-4">
+            {/* Category-specific programs will be rendered here */}
+          </TabsContent>
+        ))}
+      </Tabs>
 
       {isAddingProgram && (
         <Card>
@@ -279,8 +351,28 @@ const AdminProgramsTab = () => {
               />
             </div>
             <div className="space-y-2">
+              <label htmlFor="category" className="text-sm font-medium">
+                Program Category
+              </label>
+              <Select 
+                value={newProgram.category} 
+                onValueChange={(value) => setNewProgram({ ...newProgram, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {programCategories.map(category => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <label htmlFor="level" className="text-sm font-medium">
-                Education Level
+                Education Level/Duration
               </label>
               <Input
                 id="level"
@@ -288,7 +380,7 @@ const AdminProgramsTab = () => {
                 onChange={(e) =>
                   setNewProgram({ ...newProgram, level: e.target.value })
                 }
-                placeholder="e.g., High School, Middle School, Elementary"
+                placeholder="e.g., 2 Years, 4 Semesters"
               />
             </div>
             <div className="space-y-2">
@@ -352,8 +444,28 @@ const AdminProgramsTab = () => {
               />
             </div>
             <div className="space-y-2">
+              <label htmlFor="edit-category" className="text-sm font-medium">
+                Program Category
+              </label>
+              <Select 
+                value={editingProgram.category || "general"} 
+                onValueChange={(value) => setEditingProgram({ ...editingProgram, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {programCategories.map(category => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <label htmlFor="edit-level" className="text-sm font-medium">
-                Education Level
+                Education Level/Duration
               </label>
               <Input
                 id="edit-level"
@@ -420,7 +532,14 @@ const AdminProgramsTab = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle>{program.title}</CardTitle>
-                    <CardDescription>{program.level}</CardDescription>
+                    <CardDescription>
+                      {program.level}
+                      {program.category && (
+                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {program.category}
+                        </span>
+                      )}
+                    </CardDescription>
                   </div>
                   <div className="flex space-x-2">
                     <Button

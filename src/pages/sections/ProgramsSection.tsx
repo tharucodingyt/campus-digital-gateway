@@ -15,6 +15,7 @@ interface Program {
   duration?: string;
   image_url?: string;
   status?: string;
+  category?: string;
 }
 
 const ProgramsSection = () => {
@@ -36,8 +37,7 @@ const ProgramsSection = () => {
         .select('*')
         .eq('status', 'published');
 
-      // Filter programs based on section if it exists
-      // Since we don't have a category column, we'll filter on the frontend side
+      // Filter by section is now done client-side based on extracted category
       const { data, error } = await query.order('title', { ascending: true });
 
       if (error) {
@@ -46,16 +46,27 @@ const ProgramsSection = () => {
 
       // Map the database fields to our Program interface
       const formattedPrograms = data.map(program => {
-        // Safely extract features from program.requirements
+        // Safely extract features and category from program.requirements
         let features: string[] = [];
+        let category = "general"; // Default category
+        
         try {
           // Check if requirements is a string and can be parsed as JSON
           if (program.requirements) {
             const parsed = JSON.parse(program.requirements);
-            if (Array.isArray(parsed)) {
+            
+            // Extract features
+            if (parsed.features && Array.isArray(parsed.features)) {
+              features = parsed.features;
+            } else if (Array.isArray(parsed)) {
               features = parsed;
             } else if (typeof parsed === 'object') {
-              features = Object.values(parsed);
+              features = Object.values(parsed).filter(item => typeof item === 'string');
+            }
+            
+            // Extract category if it exists
+            if (parsed.category) {
+              category = parsed.category;
             }
           }
         } catch (e) {
@@ -72,23 +83,16 @@ const ProgramsSection = () => {
           duration: program.duration,
           image_url: program.image_url,
           features: features,
-          status: program.status
+          status: program.status,
+          category: category
         };
       });
 
-      // If a section is specified, filter programs client-side
-      // This is a temporary solution until you add a category column to the database
+      // If a section is specified, filter programs by category
       let filteredPrograms = formattedPrograms;
       if (section) {
-        // Use the program title and description to guess if it matches the section
-        // This is not ideal but works as a temporary solution
         filteredPrograms = formattedPrograms.filter(program => {
-          const titleLower = program.title.toLowerCase();
-          const descLower = program.description.toLowerCase();
-          const sectionLower = section.toLowerCase();
-          
-          return titleLower.includes(sectionLower) || 
-                 descLower.includes(sectionLower);
+          return program.category === section;
         });
       }
 
@@ -161,9 +165,16 @@ const ProgramsSection = () => {
 
                 <CardHeader>
                   <CardTitle className="text-2xl">{program.title}</CardTitle>
-                  {program.duration && (
-                    <CardDescription>{program.duration}</CardDescription>
-                  )}
+                  <CardDescription className="flex items-center gap-2">
+                    {program.duration && (
+                      <span>{program.duration}</span>
+                    )}
+                    {program.category && (
+                      <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full">
+                        {program.category}
+                      </span>
+                    )}
+                  </CardDescription>
                 </CardHeader>
 
                 <CardContent>

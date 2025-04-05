@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,16 +16,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 215 70% 47%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 217.2 91.2% 59.8%;
+    --secondary: 213 70% 62%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 210 40% 97%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -34,7 +35,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -94,8 +95,12 @@
     @apply bg-background text-foreground font-sans;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-bold;
+  h1 {
+    @apply font-heading font-bold tracking-tight;
+  }
+  
+  h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight;
   }
   
   html {
@@ -109,28 +114,28 @@
   }
   
   .btn-primary {
-    @apply bg-school-primary hover:bg-school-secondary text-white font-medium py-2 px-6 rounded-md transition-colors;
+    @apply bg-school-primary hover:bg-school-secondary text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-300 shadow-button hover:shadow-md;
   }
   
   .btn-secondary {
-    @apply bg-white hover:bg-school-accent text-school-primary border border-school-primary font-medium py-2 px-6 rounded-md transition-colors;
+    @apply bg-white hover:bg-school-accent text-school-primary border border-school-primary/20 font-medium py-2.5 px-6 rounded-lg transition-colors hover:border-school-primary;
   }
 
   .section-heading {
-    @apply text-3xl md:text-4xl font-bold mb-6 text-school-primary;
+    @apply text-3xl md:text-4xl font-bold mb-8 text-school-primary font-heading tracking-tight;
   }
   
   .section-subheading {
-    @apply text-xl md:text-2xl font-semibold mb-4 text-school-secondary;
+    @apply text-xl md:text-2xl font-semibold mb-5 text-school-secondary font-heading;
   }
 
   /* Navigation styles */
   .nav-link {
-    @apply transition-all duration-300;
+    @apply transition-all duration-300 relative;
   }
 
   .nav-link::after {
-    @apply content-[''] absolute left-0 bottom-0 h-0.5 w-0 bg-school-primary transition-all duration-300;
+    @apply content-[''] absolute left-0 -bottom-1 h-0.5 w-0 bg-school-primary rounded-full transition-all duration-300;
   }
 
   .nav-link:hover::after {
@@ -138,20 +143,20 @@
   }
 
   .nav-link-active::after {
-    @apply w-full;
+    @apply w-full bg-school-primary;
   }
 
   /* Card styles */
   .card-link {
-    @apply hover:shadow-xl hover:-translate-y-1 hover:shadow-school-primary/20;
+    @apply hover:shadow-card hover:-translate-y-1 transition-all duration-300;
   }
 
   .card-icon-container {
-    @apply transition-all duration-300 rounded-full p-3;
+    @apply transition-all duration-300 rounded-full p-3.5;
   }
 
   .card-link:hover .card-icon-container {
-    @apply bg-school-accent scale-110 rotate-6;
+    @apply bg-school-accent scale-110 rotate-3;
   }
 
   .card-link:hover .animate-icon {
@@ -160,7 +165,7 @@
 
   /* Enhanced Card styles */
   .enhanced-card {
-    @apply transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-lg;
+    @apply transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-soft-lg rounded-xl overflow-hidden;
   }
   
   .enhanced-card:hover .card-image {
@@ -168,15 +173,15 @@
   }
   
   .enhanced-card:hover .card-overlay {
-    @apply bg-opacity-70;
+    @apply bg-opacity-60;
   }
   
   .card-image {
-    @apply transition-transform duration-300 ease-in-out;
+    @apply transition-transform duration-500 ease-in-out;
   }
   
   .card-overlay {
-    @apply absolute inset-0 bg-black bg-opacity-40 transition-all duration-300;
+    @apply absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/10 transition-all duration-300;
   }
 
   /* Parallax effect for bg-fixed doesn't work on some mobile browsers, 
@@ -189,19 +194,19 @@
 
   /* Animation utilities */
   .hover-scale {
-    @apply transform transition-transform duration-300 hover:scale-105;
+    @apply transform transition-transform duration-300 hover:scale-[1.03];
   }
 
   .animate-fadeDown {
-    animation: fadeDown 0.3s ease-in-out forwards;
+    animation: fadeDown 0.4s ease-in-out forwards;
   }
 
   .animate-fadeIn {
-    animation: fadeIn 0.3s ease-in-out forwards;
+    animation: fadeIn 0.4s ease-in-out forwards;
   }
 
   .animate-slideDown {
-    animation: slideDown 0.3s ease-in-out forwards;
+    animation: slideDown 0.4s ease-in-out forwards;
   }
 
   .animate-icon {
@@ -214,7 +219,7 @@
   
   /* New animation utilities */
   .hover-grow {
-    @apply transition-transform duration-300 ease-in-out hover:scale-105;
+    @apply transition-transform duration-300 ease-in-out hover:scale-[1.03];
   }
   
   .hover-shine {
@@ -230,15 +235,42 @@
     animation: shine 0.85s;
   }
   
-  @keyframes shine {
-    100% {
-      left: 125%;
-    }
-  }
-  
   /* Enhanced background zoom */
   .bg-zoom {
     @apply transition-transform duration-[6s] ease-in-out hover:scale-105;
+  }
+  
+  /* New utility classes */
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  
+  .card-modern {
+    @apply bg-white rounded-xl border border-gray-100 shadow-soft overflow-hidden transition-all hover:shadow-soft-lg hover:-translate-y-1 duration-300;
+  }
+  
+  .btn-modern {
+    @apply rounded-lg px-6 py-2.5 font-medium transition-all duration-300 transform hover:shadow-button;
+  }
+  
+  .btn-modern-primary {
+    @apply btn-modern bg-school-primary text-white hover:bg-school-primary/90;
+  }
+  
+  .btn-modern-secondary {
+    @apply btn-modern bg-white text-school-primary border border-school-primary/20 hover:border-school-primary;
+  }
+  
+  .btn-modern-outline {
+    @apply btn-modern bg-transparent border border-white text-white hover:bg-white hover:text-school-primary;
   }
 
   @keyframes fadeDown {
@@ -277,10 +309,16 @@
       transform: scale(1);
     }
     50% {
-      transform: scale(1.1);
+      transform: scale(1.05);
     }
     100% {
       transform: scale(1);
+    }
+  }
+  
+  @keyframes shine {
+    100% {
+      left: 125%;
     }
   }
 }

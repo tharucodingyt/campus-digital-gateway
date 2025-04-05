@@ -111,93 +111,110 @@ const ProgramsSection = () => {
     return <Navigate to="/programs" replace />;
   }
 
+  const getSectionDescription = () => {
+    switch(section) {
+      case 'technical':
+        return "Explore our technical programs focusing on IT, Engineering, and more.";
+      case 'science':
+        return "Discover our science programs with Physics, Chemistry, Biology, and Mathematics.";
+      case 'general':
+        return "Learn about our general education programs in Humanities, Commerce, and Languages.";
+      case 'primary':
+        return "Foundational learning through play-based methods for grades I-V.";
+      case 'secondary':
+        return "Intermediate learning and board exam preparation for grades VI-X.";
+      default:
+        return "Discover our comprehensive range of academic programs designed to nurture talent and foster excellence.";
+    }
+  };
+
   return (
     <Layout>
-      <div className="container mx-auto py-12 px-4">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            {section 
-              ? `${section.charAt(0).toUpperCase() + section.slice(1)} Programs` 
-              : "All Academic Programs"}
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {section === 'technical' && "Explore our technical programs focusing on IT, Engineering, and more."}
-            {section === 'science' && "Discover our science programs with Physics, Chemistry, Biology, and Mathematics."}
-            {section === 'general' && "Learn about our general education programs in Humanities, Commerce, and Languages."}
-            {section === 'primary' && "Foundational learning through play-based methods for grades I-V."}
-            {section === 'secondary' && "Intermediate learning and board exam preparation for grades VI-X."}
-            {!section && "Discover our comprehensive range of academic programs designed to nurture talent and foster excellence."}
-          </p>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="bg-gradient-to-b from-school-light to-white py-16 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-14">
+            <h1 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-school-primary tracking-tight">
+              {section 
+                ? `${section.charAt(0).toUpperCase() + section.slice(1)} Programs` 
+                : "All Academic Programs"}
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto font-sans leading-relaxed">
+              {getSectionDescription()}
+            </p>
           </div>
-        ) : error ? (
-          <div className="text-center py-10">
-            <p className="text-red-500">Error loading programs: {error}</p>
-          </div>
-        ) : programs.length === 0 ? (
-          <div className="text-center py-10">
-            <p>No programs available in this category. Please check back later.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {programs.map((program) => (
-              <Card key={program.id} className="overflow-hidden">
-                <div className="relative">
-                  <img
-                    src={program.image_url || 'https://via.placeholder.com/800x400?text=Program'}
-                    alt={program.title}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://via.placeholder.com/800x400?text=Program';
-                    }}
-                  />
-                  {program.duration && (
-                    <Badge className="absolute top-4 right-4">
-                      {program.duration}
-                    </Badge>
-                  )}
-                </div>
 
-                <CardHeader>
-                  <CardTitle className="text-2xl">{program.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    {program.duration && (
-                      <span>{program.duration}</span>
-                    )}
-                    {program.category && (
-                      <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full">
-                        {program.category}
-                      </span>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent>
-                  <p className="mb-6">{program.description}</p>
-                  
-                  {program.features && program.features.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-2">Program Features:</h3>
-                      <ul className="space-y-2">
-                        {program.features.map((feature, index) => (
-                          <li key={index} className="flex items-start">
-                            <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-school-primary" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-10 bg-red-50 rounded-xl border border-red-100 p-8">
+              <p className="text-red-500 font-medium">Error loading programs: {error}</p>
+            </div>
+          ) : programs.length === 0 ? (
+            <div className="text-center py-16 bg-school-neutral rounded-xl border border-gray-100 p-8">
+              <p className="text-lg text-gray-600">No programs available in this category. Please check back later.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {programs.map((program, index) => (
+                <Card key={program.id} className="overflow-hidden border-0 shadow-card transition-all duration-300 hover:shadow-soft-lg group">
+                  <div className="relative">
+                    <img
+                      src={program.image_url || 'https://via.placeholder.com/800x400?text=Program'}
+                      alt={program.title}
+                      className="w-full h-52 object-cover transition-all duration-500 group-hover:scale-105"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/800x400?text=Program';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80"></div>
+                    <div className="absolute top-4 right-4 space-x-2">
+                      {program.duration && (
+                        <Badge className="bg-school-primary hover:bg-school-secondary">
+                          {program.duration}
+                        </Badge>
+                      )}
+                      {program.category && (
+                        <Badge variant="outline" className="bg-white/90 text-school-primary border-0">
+                          {program.category}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </div>
+
+                  <CardHeader className="relative -mt-8 bg-white rounded-t-2xl z-10 pb-0">
+                    <CardTitle className="text-2xl font-heading font-bold text-school-primary">{program.title}</CardTitle>
+                    <CardDescription className="flex items-center gap-2 mt-2">
+                      {program.duration && (
+                        <span className="text-sm text-gray-600 font-medium">{program.duration}</span>
+                      )}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="pt-4">
+                    <p className="mb-6 text-gray-600 leading-relaxed">{program.description}</p>
+                    
+                    {program.features && program.features.length > 0 && (
+                      <div className="bg-school-neutral/50 p-5 rounded-lg">
+                        <h3 className="font-medium mb-3 text-school-primary">Program Features:</h3>
+                        <ul className="space-y-2.5">
+                          {program.features.map((feature, index) => (
+                            <li key={index} className="flex items-start">
+                              <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                              <span className="text-gray-700">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </Layout>
   );

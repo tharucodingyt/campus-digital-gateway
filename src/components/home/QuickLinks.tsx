@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, LogIn, Phone, GraduationCap, BookOpen } from 'lucide-react';
@@ -9,40 +10,40 @@ const QuickLinks = () => {
       description: 'Apply for admission to any of our programs',
       icon: <User className="h-8 w-8 text-school-primary animate-icon" />,
       link: '/admissions',
-      color: 'bg-blue-50',
+      color: 'bg-school-pastel-blue',
     },
     {
       title: 'Academic Calendar',
       description: 'View important dates and school events',
       icon: <Calendar className="h-8 w-8 text-school-primary animate-icon" />,
       link: '/events#calendar',
-      color: 'bg-green-50',
+      color: 'bg-school-pastel-green',
     },
     {
       title: 'Admin Login',
       description: 'Access your admin dashboard and resources',
       icon: <LogIn className="h-8 w-8 text-school-primary animate-icon" />,
       link: '/auth',
-      color: 'bg-amber-50',
+      color: 'bg-school-pastel-yellow',
     },
     {
       title: 'Contact Us',
       description: 'Get in touch with our administration',
       icon: <Phone className="h-8 w-8 text-school-primary animate-icon" />,
       link: '/contact',
-      color: 'bg-purple-50',
+      color: 'bg-school-pastel-purple',
     },
     {
       title: 'Library Resources',
       description: 'Browse our digital and physical collections',
       icon: <BookOpen className="h-8 w-8 text-school-primary animate-icon" />,
       link: '/resources#library',
-      color: 'bg-teal-50',
+      color: 'bg-school-pastel-green',
     }
   ];
 
   return (
-    <section className="py-12 bg-gray-50" id="quick-links">
+    <section className="py-16 bg-school-neutral" id="quick-links">
       <div className="container-custom">
         <h2 className="section-heading text-center mb-12" data-aos="fade-up">Quick Access</h2>
         
@@ -51,16 +52,16 @@ const QuickLinks = () => {
             <Link
               key={index}
               to={item.link}
-              className={`card-link ${item.color} rounded-lg p-6 shadow-sm transition-all duration-300 transform hover:-translate-y-2`}
+              className="card-link bg-white rounded-xl border border-gray-100 shadow-soft overflow-hidden"
               data-aos="fade-up"
               data-aos-delay={100 + (index * 50)}
             >
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 card-icon-container p-3 rounded-full bg-white/80">
+              <div className="flex flex-col items-center text-center p-8">
+                <div className="mb-5 card-icon-container bg-gray-50">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
-                <p className="text-gray-600">{item.description}</p>
+                <h3 className="text-xl font-heading font-semibold mb-3 text-school-primary">{item.title}</h3>
+                <p className="text-gray-600 font-medium">{item.description}</p>
               </div>
             </Link>
           ))}

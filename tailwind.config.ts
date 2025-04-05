@@ -63,16 +63,26 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// School theme colors
+				// Updated school theme colors with softer, lovable palette
 				school: {
-					primary: '#1E3A8A', // Deep blue
-					secondary: '#2563EB', // Medium blue
-					accent: '#DBEAFE', // Light blue
-					highlight: '#FEF3C7', // Light yellow for highlights
-					success: '#064E3B', // Dark green
-					warning: '#F59E0B', // Amber/orange
-					light: '#F3F4F6', // Light gray
-					dark: '#1F2937', // Dark gray
+					primary: '#4A6FA5', // Softer blue
+					secondary: '#6B98D4', // Medium soft blue
+					accent: '#E9F3FF', // Light blue
+					highlight: '#FFF5E1', // Soft cream for highlights
+					success: '#7DB59A', // Soft green
+					warning: '#F8C36B', // Soft amber
+					light: '#F9FBFF', // Softer light gray
+					dark: '#3A4754', // Softer dark gray
+					neutral: '#F2F7FA', // Warm neutral
+					cream: '#FFF9F0', // Warm cream
+					pastel: {
+						blue: '#D3E4FD',
+						green: '#E1F5E6',
+						yellow: '#FFF7CD',
+						orange: '#FEE9D6',
+						purple: '#E9E5FF',
+						pink: '#FFEDF2'
+					}
 				}
 			},
 			borderRadius: {
@@ -123,21 +133,44 @@ export default {
 				},
 				pulse: {
 					'0%': { transform: 'scale(1)' },
-					'50%': { transform: 'scale(1.1)' },
+					'50%': { transform: 'scale(1.05)' },
 					'100%': { transform: 'scale(1)' }
+				},
+				softBounce: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
+				},
+				softFloat: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-8px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fadeIn': 'fadeIn 0.3s ease-in-out forwards',
-				'fadeDown': 'fadeDown 0.3s ease-in-out forwards',
-				'slideDown': 'slideDown 0.3s ease-in-out forwards',
-				'pulse': 'pulse 2s infinite'
+				'fadeIn': 'fadeIn 0.5s ease-in-out forwards',
+				'fadeDown': 'fadeDown 0.4s ease-in-out forwards',
+				'slideDown': 'slideDown 0.5s ease-in-out forwards',
+				'pulse': 'pulse 3s infinite ease-in-out',
+				'soft-bounce': 'softBounce 2s infinite ease-in-out',
+				'soft-float': 'softFloat 3s infinite ease-in-out'
 			},
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				display: ['Playfair Display', 'serif'],
+				// Improved font stack
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				display: ['Playfair Display', 'Georgia', 'serif'],
+				heading: ['Montserrat', 'sans-serif'],
+				accent: ['Poppins', 'sans-serif']
+			},
+			spacing: {
+				'18': '4.5rem',
+				'22': '5.5rem',
+			},
+			boxShadow: {
+				'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+				'soft-lg': '0 10px 30px rgba(0, 0, 0, 0.07)',
+				'button': '0 2px 8px rgba(74, 111, 165, 0.15)',
+				'card': '0 4px 16px rgba(17, 17, 26, 0.08)'
 			}
 		}
 	},

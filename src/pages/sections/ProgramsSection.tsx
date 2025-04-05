@@ -15,7 +15,6 @@ interface Program {
   duration?: string;
   image_url?: string;
   status?: string;
-  category?: string;
 }
 
 const ProgramsSection = () => {
@@ -37,14 +36,8 @@ const ProgramsSection = () => {
         .select('*')
         .eq('status', 'published');
 
-      // Filter by category if a valid section is provided
-      if (section) {
-        // We'll assume section corresponds to program category in the database
-        // e.g., 'technical', 'science', 'general', 'primary', 'secondary'
-        query = query.ilike('category', `%${section}%`);
-      }
-      
-      // Execute query and order results
+      // Filter programs based on section if it exists
+      // Since we don't have a category column, we'll filter on the frontend side
       const { data, error } = await query.order('title', { ascending: true });
 
       if (error) {
@@ -79,12 +72,27 @@ const ProgramsSection = () => {
           duration: program.duration,
           image_url: program.image_url,
           features: features,
-          status: program.status,
-          category: program.category
+          status: program.status
         };
       });
 
-      setPrograms(formattedPrograms);
+      // If a section is specified, filter programs client-side
+      // This is a temporary solution until you add a category column to the database
+      let filteredPrograms = formattedPrograms;
+      if (section) {
+        // Use the program title and description to guess if it matches the section
+        // This is not ideal but works as a temporary solution
+        filteredPrograms = formattedPrograms.filter(program => {
+          const titleLower = program.title.toLowerCase();
+          const descLower = program.description.toLowerCase();
+          const sectionLower = section.toLowerCase();
+          
+          return titleLower.includes(sectionLower) || 
+                 descLower.includes(sectionLower);
+        });
+      }
+
+      setPrograms(filteredPrograms);
     } catch (err: any) {
       setError(err.message);
       console.error("Error fetching programs:", err);

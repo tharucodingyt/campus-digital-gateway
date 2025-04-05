@@ -29,7 +29,7 @@ export function NavbarAuth() {
       ) : (
         <NavLink to="/auth">
           <Button variant="outline" size="sm">
-            Admin Login
+            Sign In
           </Button>
         </NavLink>
       )}

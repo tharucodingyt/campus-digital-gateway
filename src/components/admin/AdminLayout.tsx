@@ -17,7 +17,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
 
   // If user is not logged in or not an admin, redirect to login
   if (!isLoading && (!user || !isAdmin)) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/auth" />;
   }
 
   const handleSignOut = async () => {

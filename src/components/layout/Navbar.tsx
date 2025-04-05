@@ -63,22 +63,22 @@ const Navbar = () => {
   const aboutUsDropdown = [
     {
       title: 'History of School',
-      path: '/about#history',
+      path: '/aboutus/history',
       description: 'Learn about our founding and key milestones'
     },
     {
       title: 'Messages from Leadership',
-      path: '/about#leadership',
+      path: '/aboutus/leadership',
       description: 'Messages from our Principal, Vice Principal, MD, and Chairman'
     },
     {
       title: 'Our Teams',
-      path: '/about#teams',
+      path: '/aboutus/teams',
       description: 'Meet our administrative and support staff'
     },
     {
       title: 'Our Faculty',
-      path: '/about#faculty',
+      path: '/aboutus/faculty',
       description: 'Explore our teaching departments and faculty members'
     },
   ];
@@ -86,27 +86,27 @@ const Navbar = () => {
   const programsDropdown = [
     {
       title: 'Technical Stream (IX-XII)',
-      path: '/programs#technical',
+      path: '/programs/technical',
       description: 'IT, Engineering Basics, and technical subjects'
     },
     {
       title: 'Science Stream (XI-XII)',
-      path: '/programs#science',
+      path: '/programs/science',
       description: 'Physics, Chemistry, Biology, Mathematics'
     },
     {
       title: 'General Stream (XI-XII)',
-      path: '/programs#general',
+      path: '/programs/general',
       description: 'Humanities, Commerce, and Languages'
     },
     {
       title: 'Primary School (I-V)',
-      path: '/programs#primary',
+      path: '/programs/primary',
       description: 'Foundational learning through play-based methods'
     },
     {
       title: 'Secondary School (VI-X)',
-      path: '/programs#secondary',
+      path: '/programs/secondary',
       description: 'Intermediate learning and board exam preparation'
     },
   ];
@@ -114,22 +114,22 @@ const Navbar = () => {
   const eventsDropdown = [
     {
       title: 'Latest News',
-      path: '/events#news',
+      path: '/events/news',
       description: 'School achievements, announcements, and initiatives'
     },
     {
       title: 'Event Calendar',
-      path: '/events#calendar',
+      path: '/events/calendar',
       description: 'Upcoming events, dates, and registration links'
     },
     {
       title: 'Photo/Video Gallery',
-      path: '/events#gallery',
+      path: '/events/gallery',
       description: 'Media highlights from recent school events'
     },
     {
       title: 'Newsletter',
-      path: '/events#newsletter',
+      path: '/events/newsletter',
       description: 'Subscribe to our regular school updates'
     },
   ];
@@ -188,7 +188,7 @@ const Navbar = () => {
                 <NavigationMenuItem>
                   <NavigationMenuTrigger 
                     className={`px-3 py-2 text-sm font-medium rounded-md hover:bg-school-accent relative nav-link ${
-                      location.pathname === '/about' 
+                      location.pathname === '/aboutus' 
                         ? 'text-school-primary font-semibold nav-link-active' 
                         : 'text-gray-700'
                     }`}
@@ -319,9 +319,9 @@ const Navbar = () => {
               
               <div className="space-y-1">
                 <Link
-                  to="/about"
+                  to="/aboutus"
                   className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-school-accent transition-colors ${
-                    location.pathname === '/about' 
+                    location.pathname === '/aboutus' 
                       ? 'text-school-primary font-semibold' 
                       : 'text-gray-700'
                   }`}

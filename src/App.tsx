@@ -8,13 +8,15 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import AboutUs from "./pages/AboutUs";
 import Programs from "./pages/Programs";
-import Admissions from "./pages/Admissions";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AboutUsSection from "./pages/sections/AboutUsSection";
+import ProgramsSection from "./pages/sections/ProgramsSection";
+import EventsSection from "./pages/sections/EventsSection";
 
 const queryClient = new QueryClient();
 
@@ -28,9 +30,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/aboutus/:section" element={<AboutUsSection />} />
             <Route path="/programs" element={<Programs />} />
-            <Route path="/admissions" element={<Admissions />} />
+            <Route path="/programs/:section" element={<ProgramsSection />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/:section" element={<EventsSection />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Auth />} /> {/* Add this line to support both paths */}

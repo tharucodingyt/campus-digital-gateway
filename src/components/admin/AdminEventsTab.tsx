@@ -38,7 +38,7 @@ const AdminEventsTab = () => {
     category: "news", // Default category
     content: "",
     image_url: "",
-    is_event: true,
+    is_event: false,
   });
 
   // Event categories
@@ -71,28 +71,21 @@ const AdminEventsTab = () => {
         return;
       }
 
-      // Process events data: extract category from content if possible
+      // Process events data to ensure each event has a category
       const formattedEvents = data.map(event => {
-        // Try to extract category from event
-        let category = "news"; // Default category
+        // Default category
+        let category = "news";
         
         if (event.is_event) {
           category = "calendar";
         }
         
-        // Check if there's a category in a JSON format within the content
-        try {
-          const contentObj = JSON.parse(event.content);
-          if (contentObj && contentObj.category) {
-            category = contentObj.category;
-          }
-        } catch (e) {
-          // If content is not JSON, check for a category tag
-          if (event.content && event.content.includes("category:")) {
-            const match = event.content.match(/category:([a-zA-Z]+)/);
-            if (match && match[1]) {
-              category = match[1].toLowerCase();
-            }
+        // Try to extract category from event content
+        if (event.content) {
+          // First check if there's a category tag
+          const categoryMatch = event.content.match(/category:([a-zA-Z]+)/i);
+          if (categoryMatch && categoryMatch[1]) {
+            category = categoryMatch[1].toLowerCase();
           }
         }
         
@@ -102,9 +95,10 @@ const AdminEventsTab = () => {
         };
       });
 
+      console.log("Fetched events:", formattedEvents);
       setEvents(formattedEvents);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      console.error("Error in fetchEvents:", error);
       toast({
         title: "Error",
         description: "Failed to fetch events. Please try again.",
@@ -117,21 +111,26 @@ const AdminEventsTab = () => {
 
   const handleAddEvent = async () => {
     try {
-      // Prepare content with category
-      let finalContent = newEvent.content;
+      console.log("Adding new event:", newEvent);
       
-      // Add category as metadata in the content
+      // Set is_event based on category
+      const isEvent = newEvent.category === "calendar";
+      
+      // Prepare content with category metadata
+      let finalContent = newEvent.content || "";
+      
+      // Add category as metadata in the content if it doesn't exist
       if (!finalContent.includes("category:")) {
-        finalContent = `${finalContent}\n\ncategory:${newEvent.category}`;
+        finalContent = `${finalContent.trim()}\n\ncategory:${newEvent.category}`;
       }
       
       const { data, error } = await supabase.from('news_events').insert([
         {
           title: newEvent.title,
-          event_date: newEvent.event_date,
+          event_date: newEvent.category === "calendar" ? newEvent.event_date : null,
           content: finalContent,
           image_url: newEvent.image_url,
-          is_event: newEvent.category === "calendar", // Set is_event based on category
+          is_event: isEvent,
           status: 'published'
         }
       ]).select();
@@ -148,7 +147,7 @@ const AdminEventsTab = () => {
 
       toast({
         title: "Success",
-        description: "Event/news item added successfully.",
+        description: "Content added successfully.",
       });
 
       // Reset form and refresh events list
@@ -158,7 +157,7 @@ const AdminEventsTab = () => {
         category: "news",
         content: "",
         image_url: "",
-        is_event: true,
+        is_event: false,
       });
       setIsAddingEvent(false);
       fetchEvents();
@@ -176,24 +175,29 @@ const AdminEventsTab = () => {
     if (!editingEvent) return;
 
     try {
-      // Prepare content with category
-      let finalContent = editingEvent.content;
+      console.log("Updating event:", editingEvent);
+      
+      // Set is_event based on category
+      const isEvent = editingEvent.category === "calendar";
+      
+      // Prepare content with category metadata
+      let finalContent = editingEvent.content || "";
       
       // Update or add category as metadata in the content
       if (finalContent.includes("category:")) {
-        finalContent = finalContent.replace(/category:[a-zA-Z]+/, `category:${editingEvent.category}`);
+        finalContent = finalContent.replace(/category:[a-zA-Z]+/i, `category:${editingEvent.category}`);
       } else {
-        finalContent = `${finalContent}\n\ncategory:${editingEvent.category}`;
+        finalContent = `${finalContent.trim()}\n\ncategory:${editingEvent.category}`;
       }
       
       const { error } = await supabase
         .from('news_events')
         .update({
           title: editingEvent.title,
-          event_date: editingEvent.event_date,
+          event_date: editingEvent.category === "calendar" ? editingEvent.event_date : null,
           content: finalContent,
           image_url: editingEvent.image_url,
-          is_event: editingEvent.category === "calendar" // Set is_event based on category
+          is_event: isEvent
         })
         .eq('id', editingEvent.id);
 
@@ -209,7 +213,7 @@ const AdminEventsTab = () => {
 
       toast({
         title: "Success",
-        description: "Event/news item updated successfully.",
+        description: "Content updated successfully.",
       });
 
       setEditingEvent(null);
@@ -243,7 +247,7 @@ const AdminEventsTab = () => {
 
       toast({
         title: "Success",
-        description: "Event/news item deleted successfully.",
+        description: "Content deleted successfully.",
       });
 
       fetchEvents();
@@ -572,7 +576,7 @@ const AdminEventsTab = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm">{event.content}</p>
+                    <p className="text-sm">{event.content?.replace(/category:[a-zA-Z]+/i, '')}</p>
                   </CardContent>
                 </div>
               </div>

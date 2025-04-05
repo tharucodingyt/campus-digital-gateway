@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout/layout';
 import { useParams, Navigate } from 'react-router-dom';
@@ -39,6 +38,7 @@ const EventsSection = () => {
   const fetchEvents = async () => {
     try {
       setIsLoading(true);
+      console.log("Fetching events for section:", section);
       
       // Start with base query
       let query = supabase
@@ -62,34 +62,43 @@ const EventsSection = () => {
       if (data && data.length > 0) {
         // Process and format events data
         const formattedEvents = data.map(event => {
-          // Try to extract category from content
-          let category = event.is_event ? "calendar" : "news"; // Default category
+          // Default category
+          let category = event.is_event ? "calendar" : "news";
           
-          // Check if there's a category in a JSON format or as text
-          try {
-            if (event.content.includes("category:")) {
-              const match = event.content.match(/category:([a-zA-Z]+)/);
-              if (match && match[1]) {
-                category = match[1].toLowerCase();
-              }
+          // Check for category in content
+          if (event.content && event.content.includes("category:")) {
+            const match = event.content.match(/category:([a-zA-Z]+)/i);
+            if (match && match[1]) {
+              category = match[1].toLowerCase();
             }
-          } catch (e) {
-            // Use default category if extraction fails
+          }
+          
+          // Clean content by removing the category tag
+          let cleanContent = event.content;
+          if (cleanContent && cleanContent.includes("category:")) {
+            cleanContent = cleanContent.replace(/\s*\n*category:[a-zA-Z]+\s*\n*/i, '').trim();
           }
           
           return {
             ...event,
+            content: cleanContent,
             tags: ['school', 'education', event.is_event ? 'event' : 'news'],
             category: category
           };
         });
         
+        console.log("Formatted events:", formattedEvents);
+        console.log("Current section:", section);
+        
         // If a section is specified, filter events by category
         let filteredEvents = formattedEvents;
         if (section) {
-          filteredEvents = formattedEvents.filter(event => event.category === section);
+          filteredEvents = formattedEvents.filter(event => {
+            return event.category === section;
+          });
         }
         
+        console.log("Filtered events:", filteredEvents);
         setNewsItems(filteredEvents);
         
         // Extract upcoming events (events with future dates)

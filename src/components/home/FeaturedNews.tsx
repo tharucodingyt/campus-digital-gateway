@@ -60,10 +60,23 @@ const FeaturedNews = () => {
       }
 
       if (data && data.length > 0) {
-        const formattedNews = data.map(item => ({
-          ...item,
-          category: item.is_event ? 'Event' : 'News'
-        }));
+        const formattedNews = data.map(item => {
+          // Extract category from content if it exists
+          let category = item.is_event ? 'Event' : 'News';
+          if (item.content && item.content.includes("category:")) {
+            const match = item.content.match(/category:([a-zA-Z]+)/i);
+            if (match && match[1]) {
+              category = match[1];
+              // Make first letter uppercase
+              category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+            }
+          }
+          
+          return {
+            ...item,
+            category
+          };
+        });
         setNewsItems(formattedNews);
       }
     } catch (error) {
@@ -121,7 +134,7 @@ const FeaturedNews = () => {
             className="w-full"
           >
             <CarouselContent>
-              {newsItems.map((item) => (
+              {newsItems.map((item, index) => (
                 <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3 p-2">
                   <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 h-full">
                     <div className="h-48 overflow-hidden">
@@ -138,7 +151,7 @@ const FeaturedNews = () => {
                     <div className="p-6">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-xs font-semibold px-2 py-1 rounded bg-school-accent text-school-primary">
-                          {item.is_event ? 'Event' : 'News'}
+                          {item.category || (item.is_event ? 'Event' : 'News')}
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
                           <Calendar size={14} className="mr-1" />
@@ -147,7 +160,11 @@ const FeaturedNews = () => {
                       </div>
                       <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
                       <p className="text-gray-600 mb-4">
-                        {item.content.length > 80 ? `${item.content.substring(0, 80)}...` : item.content}
+                        {item.content && item.content.includes("category:")
+                          ? item.content.replace(/category:[a-zA-Z]+/i, '').substring(0, 80) + '...'
+                          : (item.content && item.content.length > 80 
+                              ? `${item.content.substring(0, 80)}...` 
+                              : item.content)}
                       </p>
                       <Link
                         to={`/events/${item.id}`}
@@ -169,12 +186,12 @@ const FeaturedNews = () => {
         
         <div className="flex flex-wrap gap-4 mt-8 justify-center">
           {/* Thumbnails for quick navigation */}
-          {newsItems.map((item) => (
+          {newsItems.map((item, index) => (
             <div 
               key={`thumb-${item.id}`} 
               className="cursor-pointer hover:opacity-100 transition-opacity hover:scale-105 transform duration-300"
               data-aos="flip-up"
-              data-aos-delay={100 + (Number(item.id) % 3) * 50}
+              data-aos-delay={(index + 1) * 100} /* Fixed NaN error by using index + 1 */
             >
               <img 
                 src={item.image_url || defaultImage} 

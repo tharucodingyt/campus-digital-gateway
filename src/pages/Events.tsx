@@ -26,7 +26,6 @@ const Events = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Default placeholder image
   const defaultImage = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1771&q=80';
 
   useEffect(() => {
@@ -53,18 +52,14 @@ const Events = () => {
       }
 
       if (data && data.length > 0) {
-        // Process and format events data
         const formattedEvents = data.map(event => ({
           ...event,
-          // Generate tags from content if they don't exist
           tags: ['school', 'education', event.is_event ? 'event' : 'news'],
-          // Set a default category based on is_event
           category: event.is_event ? 'Event' : 'News'
         }));
         
         setNewsItems(formattedEvents);
         
-        // Extract upcoming events (events with future dates)
         const today = new Date();
         const upcoming = formattedEvents
           .filter(event => event.is_event && new Date(event.event_date) >= today)
@@ -106,7 +101,6 @@ const Events = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
       <section className="relative h-80 bg-school-primary">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1771&q=80')] bg-cover bg-center opacity-20"></div>
         <div className="relative container-custom h-full flex flex-col justify-center items-center text-white text-center">
@@ -115,11 +109,9 @@ const Events = () => {
         </div>
       </section>
 
-      {/* Search and Filter Section */}
       <section className="py-8 bg-white border-b">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            {/* Search */}
             <div className="w-full md:w-auto">
               <div className="relative">
                 <input
@@ -133,7 +125,6 @@ const Events = () => {
               </div>
             </div>
             
-            {/* Category Filters */}
             <div className="flex flex-wrap gap-2">
               {['all', 'event', 'news'].map((filter) => (
                 <button
@@ -153,11 +144,9 @@ const Events = () => {
         </div>
       </section>
 
-      {/* News Content */}
       <section className="py-12 bg-gray-50">
         <div className="container-custom">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2">
               <h2 className="section-heading mb-8">Latest News & Updates</h2>
               
@@ -222,9 +211,7 @@ const Events = () => {
               )}
             </div>
             
-            {/* Sidebar */}
             <div className="space-y-8">
-              {/* Upcoming Events Calendar */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-semibold text-school-primary mb-4">Upcoming Events</h3>
                 <div id="calendar" className="space-y-4">
@@ -247,9 +234,6 @@ const Events = () => {
                 </div>
               </div>
               
-              {/* Newsletter Signup removed */}
-              
-              {/* Photo Highlights */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-semibold text-school-primary mb-4">Photo Highlights</h3>
                 <div className="grid grid-cols-2 gap-2">

@@ -142,7 +142,7 @@ const EventsSection = () => {
   });
 
   // Redirect if section is invalid
-  const validSections = ['news', 'calendar', 'gallery', 'newsletter'];
+  const validSections = ['news', 'calendar', 'gallery'];
   if (section && !validSections.includes(section)) {
     return <Navigate to="/events" replace />;
   }
@@ -301,49 +301,6 @@ const EventsSection = () => {
               ))}
             </div>
           )}
-        </div>
-      )}
-      
-      {section === 'newsletter' && (
-        <div className="container-custom py-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">Newsletter</h1>
-          <p className="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter to receive regular updates about school events and activities
-          </p>
-          
-          <div className="bg-white rounded-lg shadow-md p-8 max-w-md mx-auto">
-            <h3 className="text-xl font-semibold text-school-primary mb-4">Subscribe to Newsletter</h3>
-            <p className="text-gray-600 mb-4">
-              Get the latest news and updates delivered to your inbox.
-            </p>
-            <form>
-              <div className="mb-4">
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  className="w-full px-4 py-2 border rounded-md"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <input
-                  type="text"
-                  placeholder="Your name"
-                  className="w-full px-4 py-2 border rounded-md"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-school-primary text-white py-2 px-4 rounded-md hover:bg-school-primary/90 transition-colors"
-              >
-                Subscribe
-              </button>
-            </form>
-            <div className="mt-4 text-sm text-gray-600">
-              <p>By subscribing, you agree to receive our newsletter and school updates. You can unsubscribe at any time.</p>
-            </div>
-          </div>
         </div>
       )}
     </Layout>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,8 +44,7 @@ const AdminEventsTab = () => {
   const eventCategories = [
     { value: "news", label: "News" },
     { value: "calendar", label: "Calendar Events" },
-    { value: "gallery", label: "Gallery" },
-    { value: "newsletter", label: "Newsletter" }
+    { value: "gallery", label: "Gallery" }
   ];
 
   useEffect(() => {

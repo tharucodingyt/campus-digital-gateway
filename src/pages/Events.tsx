@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/layout/layout';
 import { Calendar, Search } from 'lucide-react';
@@ -248,29 +247,7 @@ const Events = () => {
                 </div>
               </div>
               
-              {/* Newsletter Signup */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-xl font-semibold text-school-primary mb-4">Subscribe to Newsletter</h3>
-                <p className="text-gray-600 mb-4">
-                  Get the latest news and updates delivered to your inbox.
-                </p>
-                <form>
-                  <div className="mb-4">
-                    <input
-                      type="email"
-                      placeholder="Your email address"
-                      className="w-full px-4 py-2 border rounded-md"
-                      required
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full btn-primary"
-                  >
-                    Subscribe
-                  </button>
-                </form>
-              </div>
+              {/* Newsletter Signup removed */}
               
               {/* Photo Highlights */}
               <div className="bg-white rounded-lg shadow-md p-6">

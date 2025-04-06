@@ -127,11 +127,6 @@ const Navbar = () => {
       path: '/events/gallery',
       description: 'Media highlights from recent school events'
     },
-    {
-      title: 'Newsletter',
-      path: '/events/newsletter',
-      description: 'Subscribe to our regular school updates'
-    },
   ];
 
   const ListItem = React.forwardRef<

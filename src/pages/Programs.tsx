@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Import Layout correctly
@@ -22,6 +22,23 @@ const Programs = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Image placeholder options
+  const placeholderImages = [
+    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80',
+    'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80',
+    'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80',
+    'https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80',
+    'https://images.unsplash.com/photo-1501854140801-50d01698950b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80'
+  ];
+
+  // Get a random image placeholder based on program id
+  const getPlaceholderImage = (id: string) => {
+    // Use the last character of the id as a simple hash
+    const lastChar = id.slice(-1);
+    const index = parseInt(lastChar, 16) % placeholderImages.length;
+    return placeholderImages[index];
+  };
 
   useEffect(() => {
     async function fetchPrograms() {
@@ -63,7 +80,7 @@ const Programs = () => {
             title: program.title,
             description: program.description,
             duration: program.duration,
-            image_url: program.image_url,
+            image_url: program.image_url || getPlaceholderImage(program.id),
             features: features,
             status: program.status
           };
@@ -106,32 +123,38 @@ const Programs = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {programs.map((program) => (
-              <Card key={program.id} className="overflow-hidden">
-                <div className="relative">
-                  <img
-                    src={program.image_url || 'https://via.placeholder.com/800x400?text=Program'}
-                    alt={program.title}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://via.placeholder.com/800x400?text=Program';
-                    }}
-                  />
+              <Card key={program.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                <div className="relative h-64">
+                  {program.image_url ? (
+                    <img
+                      src={program.image_url}
+                      alt={program.title}
+                      className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = getPlaceholderImage(program.id);
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <ImageIcon className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80"></div>
                   {program.duration && (
                     <Badge className="absolute top-4 right-4">
                       {program.duration}
                     </Badge>
                   )}
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-xl font-bold text-white">{program.title}</h3>
+                    {program.duration && (
+                      <p className="text-white/75 text-sm mt-1">{program.duration}</p>
+                    )}
+                  </div>
                 </div>
 
-                <CardHeader>
-                  <CardTitle className="text-2xl">{program.title}</CardTitle>
-                  {program.duration && (
-                    <CardDescription>{program.duration}</CardDescription>
-                  )}
-                </CardHeader>
-
-                <CardContent>
+                <CardContent className="pt-6">
                   <p className="mb-6">{program.description}</p>
                   
                   {program.features && program.features.length > 0 && (

@@ -6,11 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pencil, Trash2, Plus, Search, ImageIcon } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, ImageIcon, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useForm, FormProvider } from "react-hook-form";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface Program {
   id: string;
@@ -530,7 +528,7 @@ const AdminProgramsTab = () => {
               <label htmlFor="edit-features" className="text-sm font-medium">
                 Features (comma-separated)
               </label>
-              <Input
+              <Textarea
                 id="edit-features"
                 value={Array.isArray(editingProgram.features) 
                   ? editingProgram.features.join(", ")
@@ -542,6 +540,7 @@ const AdminProgramsTab = () => {
                     features: e.target.value.split(',').map(item => item.trim()) 
                   });
                 }}
+                rows={3}
               />
             </div>
           </CardContent>
@@ -563,68 +562,84 @@ const AdminProgramsTab = () => {
           <p>No programs found. Create your first program by clicking "Add Program" above.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {filteredPrograms.map((program) => (
             <Card key={program.id} className="overflow-hidden">
-              <div className="relative h-40 bg-gray-100">
-                {program.image_url ? (
-                  <img 
-                    src={program.image_url} 
-                    alt={program.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                    <ImageIcon className="h-16 w-16 text-gray-400" />
+              <div className="flex flex-col md:flex-row">
+                <div className="md:w-1/4 h-48 bg-gray-100">
+                  {program.image_url ? (
+                    <img 
+                      src={program.image_url} 
+                      alt={program.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                      <ImageIcon className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="md:w-3/4 p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold">{program.title}</h3>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {program.level && (
+                          <Badge variant="outline">{program.level}</Badge>
+                        )}
+                        {program.category && (
+                          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-0">
+                            {program.category}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingProgram(program)}
+                      >
+                        <Pencil className="h-4 w-4 mr-1" /> Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteProgram(program.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" /> Delete
+                      </Button>
+                    </div>
                   </div>
-                )}
+                  
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{program.description}</p>
+                  
+                  {program.features && program.features.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-medium mb-2">Features:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                        {program.features.slice(0, 4).map((feature, index) => (
+                          <div key={index} className="flex items-center text-sm text-gray-600">
+                            <Check className="h-3 w-3 text-green-500 mr-2" />
+                            <span className="truncate">{feature}</span>
+                          </div>
+                        ))}
+                        {program.features.length > 4 && (
+                          <div className="text-sm text-gray-500">
+                            +{program.features.length - 4} more features
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{program.title}</CardTitle>
-                    <CardDescription>
-                      {program.level}
-                      {program.category && (
-                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {program.category}
-                        </span>
-                      )}
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingProgram(program)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteProgram(program.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm mb-2">{program.description}</p>
-                <div className="mt-4">
-                  <h4 className="text-sm font-semibold mb-2">Features:</h4>
-                  <ul className="list-disc list-inside text-sm">
-                    {program.features && program.features.map((feature, index) => (
-                      <li key={index}>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-              </CardContent>
             </Card>
           ))}
         </div>

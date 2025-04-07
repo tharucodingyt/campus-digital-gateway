@@ -4,7 +4,8 @@ import { Layout } from '@/components/layout/layout';
 import { useParams, Navigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2, Image as ImageIcon } from "lucide-react";
+import { Check, Loader2, Image as ImageIcon, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Program {
@@ -146,43 +147,82 @@ const ProgramsSection = () => {
     }
   };
 
+  const getSectionBannerImage = () => {
+    switch(section) {
+      case 'technical':
+        return 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=2000&q=80';
+      case 'science':
+        return 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=2000&q=80';
+      case 'general':
+        return 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=2000&q=80';
+      case 'primary':
+        return 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=2000&q=80';
+      case 'secondary':
+        return 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=2000&q=80';
+      default:
+        return '/lovable-uploads/3d6de585-9b88-499d-a8d5-d4388ecb75a4.png';
+    }
+  };
+
   return (
     <Layout>
-      <div className="bg-gradient-to-b from-school-light to-white py-16 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-14">
-            <h1 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-school-primary tracking-tight">
+      {/* Hero Banner Section */}
+      <div className="relative bg-gradient-to-r from-orange-600 to-orange-500 text-white overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-pattern"></div>
+        <div className="container mx-auto py-16 px-4 relative z-10 flex flex-col md:flex-row items-center justify-between">
+          <div className="md:w-1/2 mb-8 md:mb-0">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
               {section 
                 ? `${section.charAt(0).toUpperCase() + section.slice(1)} Programs` 
                 : "All Academic Programs"}
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto font-sans leading-relaxed">
-              {getSectionDescription()}
+            <p className="text-lg md:text-xl mb-6">
+              Whole child development with progressive education methods
             </p>
+            <Button className="bg-white text-orange-600 hover:bg-orange-100">
+              Enroll Now <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
+          <div className="md:w-1/2 flex justify-end">
+            <img 
+              src={getSectionBannerImage()}
+              alt={section ? `${section} Programs` : "Academic Programs"}
+              className="rounded-lg shadow-lg max-h-60 md:max-h-72 object-cover"
+            />
+          </div>
+        </div>
+      </div>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-school-primary" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-10 bg-red-50 rounded-xl border border-red-100 p-8">
-              <p className="text-red-500 font-medium">Error loading programs: {error}</p>
-            </div>
-          ) : programs.length === 0 ? (
-            <div className="text-center py-16 bg-school-neutral rounded-xl border border-gray-100 p-8">
-              <p className="text-lg text-gray-600">No programs available in this category. Please check back later.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {programs.map((program) => (
-                <Card key={program.id} className="overflow-hidden border-0 shadow-card transition-all duration-300 hover:shadow-soft-lg group">
-                  <div className="relative h-64">
+      <div className="container mx-auto py-12 px-4">
+        <div className="text-center mb-12">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            {getSectionDescription()}
+          </p>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-school-primary" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-10 bg-red-50 rounded-xl border border-red-100 p-8">
+            <p className="text-red-500 font-medium">Error loading programs: {error}</p>
+          </div>
+        ) : programs.length === 0 ? (
+          <div className="text-center py-16 bg-school-neutral rounded-xl border border-gray-100 p-8">
+            <p className="text-lg text-gray-600">No programs available in this category. Please check back later.</p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {programs.map((program) => (
+              <Card key={program.id} className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300">
+                <div className="flex flex-col md:flex-row">
+                  <div className="md:w-1/3 h-60 md:h-auto relative">
                     {program.image_url ? (
                       <img
                         src={program.image_url}
                         alt={program.title}
-                        className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                        className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = getPlaceholderImage(program.id);
@@ -193,49 +233,52 @@ const ProgramsSection = () => {
                         <ImageIcon className="h-16 w-16 text-gray-400" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                    <div className="absolute top-4 right-4 space-x-2">
-                      {program.duration && (
-                        <Badge className="bg-school-primary hover:bg-school-secondary">
-                          {program.duration}
-                        </Badge>
-                      )}
+                    <div className="absolute top-4 left-4 space-x-2">
                       {program.category && (
-                        <Badge variant="outline" className="bg-white/90 text-school-primary border-0">
+                        <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-0">
                           {program.category}
                         </Badge>
                       )}
                     </div>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="text-2xl font-heading font-bold text-white">{program.title}</h3>
-                      {program.duration && (
-                        <p className="text-white/90 mt-1">{program.duration}</p>
-                      )}
-                    </div>
                   </div>
 
-                  <CardContent className="pt-6">
-                    <p className="mb-6 text-gray-600 leading-relaxed">{program.description}</p>
+                  <CardContent className="flex-1 p-6">
+                    <div className="mb-4">
+                      <h3 className="text-2xl font-bold mb-2">{program.title}</h3>
+                      {program.duration && (
+                        <Badge variant="outline" className="mb-2">
+                          {program.duration}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <p className="mb-6 text-gray-700">{program.description}</p>
                     
                     {program.features && program.features.length > 0 && (
-                      <div className="bg-school-neutral/50 p-5 rounded-lg">
-                        <h3 className="font-medium mb-3 text-school-primary">Program Features:</h3>
-                        <ul className="space-y-2.5">
+                      <div className="bg-gray-50 p-5 rounded-lg">
+                        <h3 className="font-semibold mb-2">Program Features:</h3>
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {program.features.map((feature, index) => (
                             <li key={index} className="flex items-start">
                               <Check className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                              <span className="text-gray-700">{feature}</span>
+                              <span>{feature}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
+                    
+                    <div className="mt-6">
+                      <Button className="bg-orange-500 hover:bg-orange-600 text-white border-0">
+                        Learn More <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   );

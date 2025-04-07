@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Loader2, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ interface Program {
   duration?: string;
   image_url?: string;
   status?: string;
+  category?: string;
 }
 
 const Programs = () => {
@@ -23,7 +24,7 @@ const Programs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Image placeholder options
+  // Image placeholder options for fallback
   const placeholderImages = [
     'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80',
     'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80',
@@ -58,14 +59,25 @@ const Programs = () => {
         const formattedPrograms = data.map(program => {
           // Safely extract features from program.requirements
           let features: string[] = [];
+          let category = "general"; // Default category
+          
           try {
             // Check if requirements is a string and can be parsed as JSON
             if (program.requirements) {
               const parsed = JSON.parse(program.requirements);
-              if (Array.isArray(parsed)) {
+              
+              // Extract features
+              if (parsed.features && Array.isArray(parsed.features)) {
+                features = parsed.features;
+              } else if (Array.isArray(parsed)) {
                 features = parsed;
               } else if (typeof parsed === 'object') {
-                features = Object.values(parsed);
+                features = Object.values(parsed).filter(item => typeof item === 'string');
+              }
+              
+              // Extract category if it exists
+              if (parsed.category) {
+                category = parsed.category;
               }
             }
           } catch (e) {
@@ -80,9 +92,11 @@ const Programs = () => {
             title: program.title,
             description: program.description,
             duration: program.duration,
+            // Use admin-uploaded image URL or fallback to placeholder
             image_url: program.image_url || getPlaceholderImage(program.id),
             features: features,
-            status: program.status
+            status: program.status,
+            category: category
           };
         });
 
@@ -141,16 +155,20 @@ const Programs = () => {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80"></div>
-                  {program.duration && (
-                    <Badge className="absolute top-4 right-4">
-                      {program.duration}
-                    </Badge>
-                  )}
+                  <div className="absolute top-4 right-4 space-x-2">
+                    {program.duration && (
+                      <Badge className="bg-primary hover:bg-primary/90">
+                        {program.duration}
+                      </Badge>
+                    )}
+                    {program.category && (
+                      <Badge variant="outline" className="bg-white/90 text-primary">
+                        {program.category}
+                      </Badge>
+                    )}
+                  </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <h3 className="text-xl font-bold text-white">{program.title}</h3>
-                    {program.duration && (
-                      <p className="text-white/75 text-sm mt-1">{program.duration}</p>
-                    )}
                   </div>
                 </div>
 
@@ -158,7 +176,7 @@ const Programs = () => {
                   <p className="mb-6">{program.description}</p>
                   
                   {program.features && program.features.length > 0 && (
-                    <div>
+                    <div className="bg-gray-50 p-5 rounded-lg">
                       <h3 className="font-semibold mb-2">Program Features:</h3>
                       <ul className="space-y-2">
                         {program.features.map((feature, index) => (

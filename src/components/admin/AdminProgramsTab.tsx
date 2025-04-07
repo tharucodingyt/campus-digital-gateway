@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useForm, FormProvider } from "react-hook-form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface Program {
   id: string;
@@ -16,6 +18,7 @@ interface Program {
   level: string;
   description: string;
   features: string[];
+  image_url?: string;
   created_at?: string;
   updated_at?: string;
   category?: string;
@@ -36,6 +39,7 @@ const AdminProgramsTab = () => {
     description: "",
     features: "",
     category: "general", // Default category
+    image_url: "", // New field for image URL
   });
 
   // Program categories
@@ -72,13 +76,24 @@ const AdminProgramsTab = () => {
       const formattedPrograms = data.map(program => {
         // Extract features from requirements field
         let features: string[] = [];
+        let category = "general"; // Default category
+        
         try {
           if (program.requirements) {
             const parsed = JSON.parse(program.requirements);
-            if (Array.isArray(parsed)) {
+            
+            // Extract features
+            if (parsed.features && Array.isArray(parsed.features)) {
+              features = parsed.features;
+            } else if (Array.isArray(parsed)) {
               features = parsed;
             } else if (typeof parsed === 'object') {
-              features = Object.values(parsed);
+              features = Object.values(parsed).filter(item => typeof item === 'string');
+            }
+            
+            // Extract category if it exists
+            if (parsed.category) {
+              category = parsed.category;
             }
           }
         } catch (e) {
@@ -88,25 +103,13 @@ const AdminProgramsTab = () => {
           }
         }
         
-        // Extract category from requirements if it exists, otherwise use default
-        let category = "general";
-        try {
-          if (program.requirements) {
-            const parsed = JSON.parse(program.requirements);
-            if (parsed && parsed.category) {
-              category = parsed.category;
-            }
-          }
-        } catch (e) {
-          // Default to general if we can't extract category
-        }
-        
         return {
           id: program.id,
           title: program.title,
           level: program.duration || "",
           description: program.description,
           features: features,
+          image_url: program.image_url || "",
           category: category
         };
       });
@@ -143,6 +146,7 @@ const AdminProgramsTab = () => {
           title: newProgram.title,
           description: newProgram.description,
           duration: newProgram.level,
+          image_url: newProgram.image_url, // Save the image URL
           requirements: JSON.stringify(requirements), // Store features and category
           status: 'published'
         }
@@ -169,6 +173,7 @@ const AdminProgramsTab = () => {
         description: "",
         features: "",
         category: "general",
+        image_url: "", // Reset image URL
       });
       setIsAddingProgram(false);
       fetchPrograms();
@@ -211,6 +216,7 @@ const AdminProgramsTab = () => {
           title: editingProgram.title,
           description: editingProgram.description,
           duration: editingProgram.level,
+          image_url: editingProgram.image_url, // Update the image URL
           requirements: JSON.stringify(requirements) // Store features and category
         })
         .eq('id', editingProgram.id);
@@ -384,6 +390,22 @@ const AdminProgramsTab = () => {
               />
             </div>
             <div className="space-y-2">
+              <label htmlFor="image_url" className="text-sm font-medium">
+                Image URL
+              </label>
+              <Input
+                id="image_url"
+                value={newProgram.image_url}
+                onChange={(e) =>
+                  setNewProgram({ ...newProgram, image_url: e.target.value })
+                }
+                placeholder="https://example.com/image.jpg"
+              />
+              <p className="text-xs text-gray-500">
+                Enter a URL for an image to represent this program
+              </p>
+            </div>
+            <div className="space-y-2">
               <label htmlFor="description" className="text-sm font-medium">
                 Description
               </label>
@@ -476,6 +498,22 @@ const AdminProgramsTab = () => {
               />
             </div>
             <div className="space-y-2">
+              <label htmlFor="edit-image_url" className="text-sm font-medium">
+                Image URL
+              </label>
+              <Input
+                id="edit-image_url"
+                value={editingProgram.image_url || ""}
+                onChange={(e) =>
+                  setEditingProgram({ ...editingProgram, image_url: e.target.value })
+                }
+                placeholder="https://example.com/image.jpg"
+              />
+              <p className="text-xs text-gray-500">
+                Enter a URL for an image to represent this program
+              </p>
+            </div>
+            <div className="space-y-2">
               <label htmlFor="edit-description" className="text-sm font-medium">
                 Description
               </label>
@@ -527,7 +565,24 @@ const AdminProgramsTab = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredPrograms.map((program) => (
-            <Card key={program.id}>
+            <Card key={program.id} className="overflow-hidden">
+              <div className="relative h-40 bg-gray-100">
+                {program.image_url ? (
+                  <img 
+                    src={program.image_url} 
+                    alt={program.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <ImageIcon className="h-16 w-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>

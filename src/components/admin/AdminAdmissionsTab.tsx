@@ -12,6 +12,15 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define type for admissions settings
+interface AdmissionsSettings {
+  id: string;
+  application_form_url: string | null;
+  application_instructions: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const formSchema = z.object({
   application_form_url: z.string().url("Please enter a valid URL"),
   application_instructions: z.string().min(10, "Instructions must be at least 10 characters"),
@@ -34,10 +43,11 @@ const AdminAdmissionsTab = () => {
     async function loadSettings() {
       setIsLoading(true);
       try {
+        // Use type assertion to work around type checking for the table
         const { data, error } = await supabase
           .from('admissions_settings')
           .select('*')
-          .single();
+          .single() as { data: AdmissionsSettings | null, error: any };
 
         if (error) throw error;
 
@@ -65,20 +75,29 @@ const AdminAdmissionsTab = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // First get the ID
+      const { data: idData } = await supabase
         .from('admissions_settings')
-        .update({
-          application_form_url: values.application_form_url,
-          application_instructions: values.application_instructions,
-        })
-        .eq('id', (await supabase.from('admissions_settings').select('id').single()).data?.id);
+        .select('id')
+        .single() as { data: { id: string } | null, error: any };
       
-      if (error) throw error;
+      // Then update the record
+      if (idData) {
+        const { error } = await supabase
+          .from('admissions_settings')
+          .update({
+            application_form_url: values.application_form_url,
+            application_instructions: values.application_instructions,
+          })
+          .eq('id', idData.id) as { error: any };
+        
+        if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Admissions settings updated successfully",
-      });
+        toast({
+          title: "Success",
+          description: "Admissions settings updated successfully",
+        });
+      }
     } catch (error: any) {
       console.error("Error updating admissions settings:", error);
       toast({

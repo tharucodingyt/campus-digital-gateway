@@ -1,14 +1,21 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 
+// Define type for admissions settings
+interface AdmissionsSettings {
+  application_form_url: string | null;
+  application_instructions: string | null;
+}
+
 const Admissions = () => {
   const [activeTab, setActiveTab] = useState('process');
-  const [formData, setFormData] = useState({
-    applicationUrl: '',
-    instructions: ''
+  const [formData, setFormData] = useState<AdmissionsSettings>({
+    application_form_url: '',
+    application_instructions: ''
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -19,14 +26,14 @@ const Admissions = () => {
         const { data, error } = await supabase
           .from('admissions_settings')
           .select('application_form_url, application_instructions')
-          .single();
+          .single() as { data: AdmissionsSettings | null, error: any };
 
         if (error) throw error;
 
         if (data) {
           setFormData({
-            applicationUrl: data.application_form_url || 'https://docs.google.com/forms/d/e/your-form-id/viewform',
-            instructions: data.application_instructions || 'Please fill out our online application form to begin the admission process.'
+            application_form_url: data.application_form_url || 'https://docs.google.com/forms/d/e/your-form-id/viewform',
+            application_instructions: data.application_instructions || 'Please fill out our online application form to begin the admission process.'
           });
         }
       } catch (error) {
@@ -284,12 +291,12 @@ const Admissions = () => {
                   ) : (
                     <>
                       <p className="text-center text-gray-700 mb-6">
-                        {formData.instructions}
+                        {formData.application_instructions}
                       </p>
                       
                       <div className="text-center mb-8">
                         <a
-                          href={formData.applicationUrl}
+                          href={formData.application_form_url || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn-primary inline-flex items-center"

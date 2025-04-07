@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import AboutUsSection from "./pages/sections/AboutUsSection";
 import ProgramsSection from "./pages/sections/ProgramsSection";
 import EventsSection from "./pages/sections/EventsSection";
+import Admissions from "./pages/Admissions";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/programs/:section" element={<ProgramsSection />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:section" element={<EventsSection />} />
+            <Route path="/admissions" element={<Admissions />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Auth />} /> {/* Add this line to support both paths */}

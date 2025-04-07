@@ -152,7 +152,7 @@ const AdminContactMessagesTab = () => {
                       <Badge variant={message.is_read ? "outline" : "default"}>
                         {message.is_read ? "Read" : "New"}
                       </Badge>
-                      <Badge variant={message.responded ? "success" : "secondary"}>
+                      <Badge variant={message.responded ? "secondary" : "outline"}>
                         {message.responded ? "Responded" : "Awaiting Response"}
                       </Badge>
                     </div>

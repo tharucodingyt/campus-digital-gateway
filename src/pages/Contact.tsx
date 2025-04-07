@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +15,8 @@ const Contact = () => {
   });
   
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,22 +26,49 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted with data:', formData);
-    // Here you would typically send the data to a server
-    setFormSubmitted(true);
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: '',
-    });
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase.from('contact_messages').insert({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message
+      });
 
-    // Reset form submitted status after 5 seconds
-    setTimeout(() => {
-      setFormSubmitted(false);
-    }, 5000);
+      if (error) throw error;
+      
+      console.log('Form submitted with data:', formData);
+      
+      toast({
+        title: "Message Sent",
+        description: "Thank you for your message. We'll get back to you soon.",
+      });
+      
+      setFormSubmitted(true);
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+      });
+
+      // Reset form submitted status after 5 seconds
+      setTimeout(() => {
+        setFormSubmitted(false);
+      }, 5000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem sending your message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -196,8 +227,18 @@ const Contact = () => {
                   <button
                     type="submit"
                     className="btn-primary w-full flex items-center justify-center"
+                    disabled={isSubmitting}
                   >
-                    Send Message <Send className="ml-2 h-4 w-4" />
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send Message <Send className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </button>
                 </form>
               </div>

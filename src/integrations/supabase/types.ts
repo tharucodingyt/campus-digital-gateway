@@ -54,6 +54,30 @@ export type Database = {
         }
         Relationships: []
       }
+      admissions_settings: {
+        Row: {
+          application_form_url: string | null
+          application_instructions: string | null
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          application_form_url?: string | null
+          application_instructions?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          application_form_url?: string | null
+          application_instructions?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_info: {
         Row: {
           address: string | null

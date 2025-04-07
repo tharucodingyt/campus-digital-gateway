@@ -1,11 +1,43 @@
-
-import React, { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 
 const Admissions = () => {
   const [activeTab, setActiveTab] = useState('process');
+  const [formData, setFormData] = useState({
+    applicationUrl: '',
+    instructions: ''
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAdmissionsData() {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('admissions_settings')
+          .select('application_form_url, application_instructions')
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setFormData({
+            applicationUrl: data.application_form_url || 'https://docs.google.com/forms/d/e/your-form-id/viewform',
+            instructions: data.application_instructions || 'Please fill out our online application form to begin the admission process.'
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching admissions data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchAdmissionsData();
+  }, []);
 
   const admissionSteps = [
     {
@@ -245,36 +277,44 @@ const Admissions = () => {
               <div>
                 <h2 className="section-heading text-center mb-12">Online Application Form</h2>
                 <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
-                  <p className="text-center text-gray-700 mb-6">
-                    Please fill out our online application form to begin the admission process.
-                  </p>
-                  
-                  <div className="text-center mb-8">
-                    <a
-                      href="https://docs.google.com/forms/d/e/your-form-id/viewform"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary inline-flex items-center"
-                    >
-                      Open Application Form <ArrowRight className="ml-2 h-4 w-4" />
-                    </a>
-                  </div>
-                  
-                  <div className="p-4 bg-school-accent rounded-md mb-6">
-                    <p className="text-gray-700">
-                      <strong>Note:</strong> After submitting the online form, you will receive an email with further instructions and a reference number. Please keep this reference number for all future correspondence regarding your application.
-                    </p>
-                  </div>
-                  
-                  <h3 className="text-xl font-semibold text-school-primary mb-4">Alternative Application Methods</h3>
-                  <p className="text-gray-700 mb-4">
-                    If you prefer to apply in person or face any issues with the online form, you can:
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
-                    <li>Visit our campus during office hours (Monday to Friday, 9 AM to 3 PM)</li>
-                    <li>Request an application form via email at admissions@campusgateway.edu</li>
-                    <li>Call our admissions office at +1 (555) 123-4567</li>
-                  </ul>
+                  {isLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-center text-gray-700 mb-6">
+                        {formData.instructions}
+                      </p>
+                      
+                      <div className="text-center mb-8">
+                        <a
+                          href={formData.applicationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-primary inline-flex items-center"
+                        >
+                          Open Application Form <ArrowRight className="ml-2 h-4 w-4" />
+                        </a>
+                      </div>
+                      
+                      <div className="p-4 bg-school-accent rounded-md mb-6">
+                        <p className="text-gray-700">
+                          <strong>Note:</strong> After submitting the online form, you will receive an email with further instructions and a reference number. Please keep this reference number for all future correspondence regarding your application.
+                        </p>
+                      </div>
+                      
+                      <h3 className="text-xl font-semibold text-school-primary mb-4">Alternative Application Methods</h3>
+                      <p className="text-gray-700 mb-4">
+                        If you prefer to apply in person or face any issues with the online form, you can:
+                      </p>
+                      <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
+                        <li>Visit our campus during office hours (Monday to Friday, 9 AM to 3 PM)</li>
+                        <li>Request an application form via email at admissions@campusgateway.edu</li>
+                        <li>Call our admissions office at +1 (555) 123-4567</li>
+                      </ul>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -289,7 +329,7 @@ const Admissions = () => {
             <div className="max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
               <div className="text-center">
                 <svg className="h-12 w-12 text-school-primary mx-auto mb-4 opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.896 3.456-8.352 9.12-8.352 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
+                  <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104-6.624-9.024L9.352 4zm16.512 0c-4.896 3.456-8.352 9.12-8.352 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.855-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                 </svg>
                 <p className="text-xl text-gray-700 italic mb-6">
                   The admission process was smooth and transparent. The staff was helpful and guided us through every step. Our child has been thriving since joining the school.

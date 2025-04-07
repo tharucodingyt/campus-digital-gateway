@@ -6,6 +6,8 @@ import AdminDashboardTab from "@/components/admin/AdminDashboardTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminEventsTab from "@/components/admin/AdminEventsTab";
 import AboutSettingsTab from "@/components/admin/AboutSettingsTab";
+import AdminAdmissionsTab from "@/components/admin/AdminAdmissionsTab";
+import AdminContactMessagesTab from "@/components/admin/AdminContactMessagesTab";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -21,11 +23,13 @@ const Admin = () => {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid grid-cols-4">
+        <TabsList className="grid grid-cols-6">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="programs">Programs</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
           <TabsTrigger value="about">About Page</TabsTrigger>
+          <TabsTrigger value="admissions">Admissions</TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard" className="space-y-4">
@@ -42,6 +46,14 @@ const Admin = () => {
         
         <TabsContent value="about" className="space-y-4">
           <AboutSettingsTab />
+        </TabsContent>
+        
+        <TabsContent value="admissions" className="space-y-4">
+          <AdminAdmissionsTab />
+        </TabsContent>
+        
+        <TabsContent value="messages" className="space-y-4">
+          <AdminContactMessagesTab />
         </TabsContent>
       </Tabs>
     </AdminLayout>

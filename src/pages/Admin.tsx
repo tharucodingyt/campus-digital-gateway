@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminDashboardTab from "@/components/admin/AdminDashboardTab";
@@ -10,7 +11,22 @@ import AdminAdmissionsTab from "@/components/admin/AdminAdmissionsTab";
 import AdminContactMessagesTab from "@/components/admin/AdminContactMessagesTab";
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabParam || "dashboard");
+
+  // Update active tab when URL param changes
+  useEffect(() => {
+    if (tabParam && ["dashboard", "programs", "events", "about", "admissions", "messages"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  // Update URL when active tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
 
   return (
     <AdminLayout 
@@ -18,9 +34,8 @@ const Admin = () => {
       subtitle="Manage your school's content and settings"
     >
       <Tabs 
-        defaultValue="dashboard" 
         value={activeTab} 
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
         className="space-y-4"
       >
         <TabsList className="grid grid-cols-6">

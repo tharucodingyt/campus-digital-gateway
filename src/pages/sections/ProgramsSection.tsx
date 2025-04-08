@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Loader2, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import ParallaxSection from "@/components/layout/ParallaxSection";
 
 interface Program {
   id: string;
@@ -160,17 +161,20 @@ const ProgramsSection = () => {
       case 'secondary':
         return 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=2000&q=80';
       default:
-        return '/lovable-uploads/3d6de585-9b88-499d-a8d5-d4388ecb75a4.png';
+        return 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80';
     }
   };
 
   return (
     <Layout>
-      {/* Hero Banner Section */}
-      <div className="relative bg-gradient-to-r from-orange-600 to-orange-500 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-pattern"></div>
-        <div className="container mx-auto py-16 px-4 relative z-10 flex flex-col md:flex-row items-center justify-between">
-          <div className="md:w-1/2 mb-8 md:mb-0">
+      {/* Hero Banner Section with background image */}
+      <ParallaxSection
+        backgroundImage={getSectionBannerImage()}
+        height="500px"
+        overlayColor="rgba(0, 0, 0, 0.6)"
+      >
+        <div className="container mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between">
+          <div className="md:w-1/2 mb-8 md:mb-0 text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               {section 
                 ? `${section.charAt(0).toUpperCase() + section.slice(1)} Programs` 
@@ -179,19 +183,19 @@ const ProgramsSection = () => {
             <p className="text-lg md:text-xl mb-6">
               Whole child development with progressive education methods
             </p>
-            <Button className="bg-white text-orange-600 hover:bg-orange-100">
+            <Button className="bg-white text-primary hover:bg-gray-100">
               Enroll Now <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
           <div className="md:w-1/2 flex justify-end">
             <img 
-              src={getSectionBannerImage()}
+              src="/lovable-uploads/3d6de585-9b88-499d-a8d5-d4388ecb75a4.png"
               alt={section ? `${section} Programs` : "Academic Programs"}
-              className="rounded-lg shadow-lg max-h-60 md:max-h-72 object-cover"
+              className="rounded-lg shadow-lg max-h-60 md:max-h-72 object-cover bg-white/80 p-2"
             />
           </div>
         </div>
-      </div>
+      </ParallaxSection>
 
       <div className="container mx-auto py-12 px-4">
         <div className="text-center mb-12">
@@ -202,14 +206,14 @@ const ProgramsSection = () => {
 
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-school-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : error ? (
           <div className="text-center py-10 bg-red-50 rounded-xl border border-red-100 p-8">
             <p className="text-red-500 font-medium">Error loading programs: {error}</p>
           </div>
         ) : programs.length === 0 ? (
-          <div className="text-center py-16 bg-school-neutral rounded-xl border border-gray-100 p-8">
+          <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-100 p-8">
             <p className="text-lg text-gray-600">No programs available in this category. Please check back later.</p>
           </div>
         ) : (
@@ -235,7 +239,7 @@ const ProgramsSection = () => {
                     )}
                     <div className="absolute top-4 left-4 space-x-2">
                       {program.category && (
-                        <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-0">
+                        <Badge className="bg-primary/80 hover:bg-primary text-white border-0">
                           {program.category}
                         </Badge>
                       )}
@@ -269,7 +273,7 @@ const ProgramsSection = () => {
                     )}
                     
                     <div className="mt-6">
-                      <Button className="bg-orange-500 hover:bg-orange-600 text-white border-0">
+                      <Button className="bg-primary hover:bg-primary/90 text-white border-0">
                         Learn More <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </div>

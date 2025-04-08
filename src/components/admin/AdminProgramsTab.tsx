@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,11 +36,10 @@ const AdminProgramsTab = () => {
     level: "",
     description: "",
     features: "",
-    category: "general", // Default category
-    image_url: "", // New field for image URL
+    category: "general",
+    image_url: "",
   });
 
-  // Program categories
   const programCategories = [
     { value: "technical", label: "Technical Programs" },
     { value: "science", label: "Science Programs" },
@@ -73,15 +71,13 @@ const AdminProgramsTab = () => {
       }
 
       const formattedPrograms = data.map(program => {
-        // Extract features from requirements field
         let features: string[] = [];
-        let category = "general"; // Default category
-        
+        let category = "general";
+
         try {
           if (program.requirements) {
             const parsed = JSON.parse(program.requirements);
             
-            // Extract features
             if (parsed.features && Array.isArray(parsed.features)) {
               features = parsed.features;
             } else if (Array.isArray(parsed)) {
@@ -90,13 +86,11 @@ const AdminProgramsTab = () => {
               features = Object.values(parsed).filter(item => typeof item === 'string');
             }
             
-            // Extract category if it exists
             if (parsed.category) {
               category = parsed.category;
             }
           }
         } catch (e) {
-          // If requirements isn't valid JSON, treat it as comma-separated
           if (typeof program.requirements === 'string') {
             features = program.requirements.split(',').map(item => item.trim());
           }
@@ -128,13 +122,11 @@ const AdminProgramsTab = () => {
 
   const handleAddProgram = async () => {
     try {
-      // Convert comma-separated features to array
       const featuresArray: string[] = newProgram.features
         .split(",")
         .map((feature) => feature.trim())
         .filter((feature) => feature !== "");
 
-      // Create a requirements object that includes both features and category
       const requirements = {
         features: featuresArray,
         category: newProgram.category
@@ -145,8 +137,8 @@ const AdminProgramsTab = () => {
           title: newProgram.title,
           description: newProgram.description,
           duration: newProgram.level,
-          image_url: newProgram.image_url, // Save the image URL
-          requirements: JSON.stringify(requirements), // Store features and category
+          image_url: newProgram.image_url,
+          requirements: JSON.stringify(requirements),
           status: 'published'
         }
       ]).select();
@@ -172,7 +164,7 @@ const AdminProgramsTab = () => {
         description: "",
         features: "",
         category: "general",
-        image_url: "", // Reset image URL
+        image_url: "",
       });
       setIsAddingProgram(false);
       fetchPrograms();
@@ -192,9 +184,7 @@ const AdminProgramsTab = () => {
     try {
       let featuresArray: string[] = [];
       
-      // Handle different types of features input
       if (typeof editingProgram.features === 'string') {
-        // Convert string to array if needed
         featuresArray = (editingProgram.features as unknown as string)
           .split(",")
           .map((feature) => feature.trim())
@@ -203,7 +193,6 @@ const AdminProgramsTab = () => {
         featuresArray = editingProgram.features;
       }
 
-      // Create a requirements object that includes both features and category
       const requirements = {
         features: featuresArray,
         category: editingProgram.category || "general"
@@ -215,8 +204,8 @@ const AdminProgramsTab = () => {
           title: editingProgram.title,
           description: editingProgram.description,
           duration: editingProgram.level,
-          image_url: editingProgram.image_url, // Update the image URL
-          requirements: JSON.stringify(requirements) // Store features and category
+          image_url: editingProgram.image_url,
+          requirements: JSON.stringify(requirements)
         })
         .eq('id', editingProgram.id);
 
@@ -281,13 +270,11 @@ const AdminProgramsTab = () => {
   };
 
   const filteredPrograms = programs.filter((program) => {
-    // Filter by search term
     const matchesSearch = 
       program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       program.level?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       program.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filter by active tab/category
     const matchesCategory = 
       activeTab === "all" || 
       program.category === activeTab;
@@ -297,7 +284,6 @@ const AdminProgramsTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Category Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="flex justify-between items-center">
           <TabsList className="inline-flex h-10">
@@ -535,7 +521,6 @@ const AdminProgramsTab = () => {
                   ? editingProgram.features.join(", ")
                   : ""}
                 onChange={(e) => {
-                  // Update features as an array
                   setEditingProgram({ 
                     ...editingProgram, 
                     features: e.target.value.split(',').map(item => item.trim()) 
@@ -594,7 +579,7 @@ const AdminProgramsTab = () => {
                           <Badge variant="outline">{program.level}</Badge>
                         )}
                         {program.category && (
-                          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-0">
+                          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0">
                             {program.category}
                           </Badge>
                         )}

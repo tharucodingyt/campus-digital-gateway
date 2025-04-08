@@ -27,11 +27,9 @@ export function NavbarAuth() {
           </Button>
         </>
       ) : (
-        <NavLink to="/auth">
-          <Button variant="outline" size="sm">
-            Sign In
-          </Button>
-        </NavLink>
+        <Button variant="outline" size="sm" onClick={() => window.location.href = "/auth"}>
+          Sign In
+        </Button>
       )}
     </div>
   );

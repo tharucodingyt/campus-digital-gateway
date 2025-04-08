@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown } from 'lucide-react';
@@ -36,6 +37,11 @@ const Navbar = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // Close menu when location changes (route navigation occurs)
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location]);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId.replace('#', ''));
@@ -136,7 +142,7 @@ const Navbar = () => {
     return (
       <li>
         <NavigationMenuLink asChild>
-          <a
+          <Link
             ref={ref}
             className={cn(
               "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
@@ -148,7 +154,7 @@ const Navbar = () => {
             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
               {children}
             </p>
-          </a>
+          </Link>
         </NavigationMenuLink>
       </li>
     );
@@ -196,7 +202,7 @@ const Navbar = () => {
                         <ListItem
                           key={item.path}
                           title={item.title}
-                          href={item.path}
+                          to={item.path}
                           onClick={(e) => handleAnchorClick(e, item.path)}
                           className="hover:bg-school-accent transition-all duration-300"
                         >
@@ -223,7 +229,7 @@ const Navbar = () => {
                         <ListItem
                           key={item.path}
                           title={item.title}
-                          href={item.path}
+                          to={item.path}
                           onClick={(e) => handleAnchorClick(e, item.path)}
                           className="hover:bg-school-accent transition-all duration-300"
                         >
@@ -250,7 +256,7 @@ const Navbar = () => {
                         <ListItem
                           key={item.path}
                           title={item.title}
-                          href={item.path}
+                          to={item.path}
                           onClick={(e) => handleAnchorClick(e, item.path)}
                           className="hover:bg-school-accent transition-all duration-300"
                         >

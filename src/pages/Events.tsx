@@ -3,6 +3,8 @@ import { Layout } from '../components/layout/layout';
 import { Calendar, Search } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import EventCard from "@/components/events/EventCard";
+import GalleryCard from "@/components/events/GalleryCard";
 
 interface Event {
   id: string;
@@ -161,105 +163,72 @@ const Events = () => {
               ) : (
                 <div className="space-y-8">
                   {filteredNews.map((item) => (
-                    <div key={item.id} className="bg-white rounded-lg overflow-hidden shadow-md">
-                      <div className="md:flex">
-                        <div className="md:flex-shrink-0">
-                          <img
-                            className="h-48 w-full md:h-full md:w-48 object-cover"
-                            src={item.image_url || defaultImage}
-                            alt={item.title}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = defaultImage;
-                            }}
-                          />
-                        </div>
-                        <div className="p-6">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-semibold px-2 py-1 rounded bg-school-accent text-school-primary">
-                              {item.is_event ? 'Event' : 'News'}
-                            </span>
-                            <div className="flex items-center text-gray-500 text-sm">
-                              <Calendar size={14} className="mr-1" />
-                              {item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
-                          <p className="text-gray-600 mb-4">
-                            {item.content.length > 150 ? item.content.substring(0, 150) + '...' : item.content}
-                          </p>
-                          {item.tags && (
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {item.tags.map((tag, index) => (
-                                <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                  #{tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          <a
-                            href={`/events/${item.id}`}
-                            className="text-school-secondary font-medium hover:text-school-primary"
-                          >
-                            Read More
-                          </a>
-                        </div>
-                      </div>
-                    </div>
+                    <EventCard
+                      key={item.id}
+                      id={item.id}
+                      title={item.title}
+                      content={item.content}
+                      date={item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
+                      imageUrl={item.image_url || ''}
+                      category={item.is_event ? 'Event' : 'News'}
+                      tags={item.tags}
+                    />
                   ))}
                 </div>
               )}
             </div>
             
             <div className="space-y-8">
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-md p-6 border border-gray-200">
                 <h3 className="text-xl font-semibold text-school-primary mb-4">Upcoming Events</h3>
                 <div id="calendar" className="space-y-4">
                   {upcomingEvents.length > 0 ? (
                     upcomingEvents.map((event, index) => (
-                      <div key={index} className="flex items-start">
-                        <div className="flex-shrink-0 mr-3">
-                          <div className="bg-school-accent text-school-primary text-xs font-semibold text-center rounded p-1 w-16">
+                      <div key={index} className="event-calendar-card flex flex-col mb-4">
+                        <div className="event-date">
+                          <div className="text-xs font-semibold text-center p-1">
                             {event.date}
                           </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{event.event}</p>
+                        <div className="p-4 flex items-center">
+                          <div className="mr-3">
+                            <Calendar className="event-icon h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{event.event}</p>
+                          </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-600">No upcoming events scheduled.</p>
+                    <div className="text-center py-6">
+                      <Calendar className="h-12 w-12 mx-auto text-school-primary/50 mb-2" />
+                      <p className="text-gray-600">No upcoming events scheduled.</p>
+                    </div>
                   )}
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-md p-6 border border-gray-200">
                 <h3 className="text-xl font-semibold text-school-primary mb-4">Photo Highlights</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <img
-                    src="https://images.unsplash.com/photo-1577896852418-3c18f1a23337?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
-                    alt="School event"
-                    className="rounded-md"
-                  />
-                  <img
-                    src="https://images.unsplash.com/photo-1492538368677-f6e0afe31dcc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
-                    alt="School event"
-                    className="rounded-md"
-                  />
-                  <img
-                    src="https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1764&q=80"
-                    alt="School event"
-                    className="rounded-md"
-                  />
-                  <img
-                    src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
-                    alt="School event"
-                    className="rounded-md"
-                  />
+                <div className="gallery-grid">
+                  {newsItems.slice(0, 4).map((item) => (
+                    <GalleryCard
+                      key={item.id}
+                      id={item.id}
+                      title={item.title}
+                      description={item.content}
+                      date={item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
+                      imageUrl={item.image_url || ''}
+                      category={item.category || (item.is_event ? 'Event' : 'News')}
+                    />
+                  ))}
                 </div>
-                <div className="mt-4 text-center">
-                  <a href="#" className="text-school-secondary hover:text-school-primary">
+                <div className="mt-6 text-center">
+                  <a href="/events/gallery" className="btn-primary inline-flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                     View Gallery
                   </a>
                 </div>

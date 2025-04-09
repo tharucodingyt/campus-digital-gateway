@@ -1,0 +1,138 @@
+/* Enhanced Components Styles */
+
+/* Event Calendar Section Styles */
+.event-calendar-card {
+  @apply bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-200;
+}
+
+.event-calendar-card:hover {
+  @apply border-school-primary/30;
+}
+
+.event-calendar-card .event-date {
+  @apply bg-school-primary text-white text-center p-2 rounded-t-lg transition-all duration-300;
+}
+
+.event-calendar-card:hover .event-date {
+  @apply bg-school-secondary;
+}
+
+.event-calendar-card .event-icon {
+  @apply text-school-primary transition-all duration-300 transform;
+}
+
+.event-calendar-card:hover .event-icon {
+  @apply rotate-12 scale-110;
+}
+
+/* News Cards Styles */
+.news-card {
+  @apply bg-white rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-100;
+}
+
+.news-card .news-image {
+  @apply h-52 w-full object-cover transition-transform duration-500;
+}
+
+.news-card:hover .news-image {
+  @apply scale-110;
+}
+
+.news-card .news-content {
+  @apply p-6;
+}
+
+.news-card .news-tag {
+  @apply inline-flex text-xs font-semibold px-3 py-1 rounded-full bg-school-accent text-school-primary transition-all duration-300;
+}
+
+.news-card:hover .news-tag {
+  @apply bg-school-primary text-white;
+}
+
+.news-card .news-title {
+  @apply text-xl font-semibold mb-2 text-school-primary transition-all duration-300;
+}
+
+.news-card:hover .news-title {
+  @apply text-school-secondary;
+}
+
+/* Photo Gallery Styles */
+.gallery-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
+}
+
+.gallery-item {
+  @apply relative overflow-hidden rounded-xl transition-all duration-300 group;
+}
+
+.gallery-item:hover {
+  @apply shadow-lg;
+}
+
+.gallery-image {
+  @apply w-full h-64 object-cover transition-transform duration-500;
+}
+
+.gallery-item:hover .gallery-image {
+  @apply scale-110;
+}
+
+.gallery-caption {
+  @apply absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity duration-300 flex flex-col justify-end p-4 text-white;
+}
+
+.gallery-item:hover .gallery-caption {
+  @apply opacity-100;
+}
+
+.gallery-title {
+  @apply text-lg font-semibold mb-1 transform translate-y-4 transition-transform duration-300;
+}
+
+.gallery-item:hover .gallery-title {
+  @apply translate-y-0;
+}
+
+.gallery-description {
+  @apply text-sm opacity-0 transform translate-y-4 transition-all duration-300 delay-100;
+}
+
+.gallery-item:hover .gallery-description {
+  @apply opacity-100 translate-y-0;
+}
+
+.gallery-button {
+  @apply mt-3 inline-flex items-center justify-center px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm font-medium transition-all duration-300 opacity-0 transform translate-y-4 hover:bg-white hover:text-school-primary;
+}
+
+.gallery-item:hover .gallery-button {
+  @apply opacity-100 translate-y-0;
+}
+
+/* Animation for fade-in effect */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Staggered animation delay for gallery items */
+.gallery-item:nth-child(1) { animation-delay: 0.1s; }
+.gallery-item:nth-child(2) { animation-delay: 0.2s; }
+.gallery-item:nth-child(3) { animation-delay: 0.3s; }
+.gallery-item:nth-child(4) { animation-delay: 0.4s; }
+.gallery-item:nth-child(5) { animation-delay: 0.5s; }
+.gallery-item:nth-child(6) { animation-delay: 0.6s; }
+.gallery-item:nth-child(7) { animation-delay: 0.7s; }
+.gallery-item:nth-child(8) { animation-delay: 0.8s; }

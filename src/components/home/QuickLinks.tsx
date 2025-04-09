@@ -20,25 +20,11 @@ const QuickLinks = () => {
       color: 'bg-school-pastel-green',
     },
     {
-      title: 'Admin Login',
-      description: 'Access your admin dashboard and resources',
-      icon: <LogIn className="h-8 w-8 text-school-primary animate-icon" />,
-      link: '/auth',
-      color: 'bg-school-pastel-yellow',
-    },
-    {
       title: 'Contact Us',
       description: 'Get in touch with our administration',
       icon: <Phone className="h-8 w-8 text-school-primary animate-icon" />,
       link: '/contact',
       color: 'bg-school-pastel-purple',
-    },
-    {
-      title: 'Library Resources',
-      description: 'Browse our digital and physical collections',
-      icon: <BookOpen className="h-8 w-8 text-school-primary animate-icon" />,
-      link: '/resources#library',
-      color: 'bg-school-pastel-green',
     }
   ];
 

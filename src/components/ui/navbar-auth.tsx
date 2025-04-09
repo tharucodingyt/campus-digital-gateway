@@ -27,9 +27,7 @@ export function NavbarAuth() {
           </Button>
         </>
       ) : (
-        <Button variant="outline" size="sm" onClick={() => window.location.href = "/auth"}>
-          Sign In
-        </Button>
+        <></> // Removed Sign In button but kept the conditional structure
       )}
     </div>
   );

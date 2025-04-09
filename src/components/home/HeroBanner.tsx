@@ -133,12 +133,18 @@ const HeroBanner = () => {
       emblaApi.on('select', onSelect);
       onSelect();
       
+      // Reset autoplay when emblaApi changes
+      if (isPlaying) {
+        stopAutoplay();
+        startAutoplay();
+      }
+      
       return () => {
         emblaApi.off('select', onSelect);
       };
     }
     return undefined;
-  }, [emblaApi]);
+  }, [emblaApi, isPlaying]);
 
   const startAutoplay = () => {
     if (intervalRef.current) {
@@ -146,7 +152,7 @@ const HeroBanner = () => {
     }
     
     intervalRef.current = setInterval(() => {
-      if (emblaApi) {
+      if (emblaApi && emblaApi.canScrollNext()) {
         emblaApi.scrollNext();
       }
     }, 5000);
@@ -293,14 +299,30 @@ const HeroBanner = () => {
         <div className="hidden md:flex gap-4">
           <button
             className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors"
-            onClick={() => emblaApi?.scrollPrev()}
+            onClick={() => {
+              if (emblaApi) {
+                emblaApi.scrollPrev();
+                if (isPlaying) {
+                  stopAutoplay();
+                  startAutoplay();
+                }
+              }
+            }}
             aria-label="Previous slide"
           >
             <ArrowLeft size={20} />
           </button>
           <button
             className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors"
-            onClick={() => emblaApi?.scrollNext()}
+            onClick={() => {
+              if (emblaApi) {
+                emblaApi.scrollNext();
+                if (isPlaying) {
+                  stopAutoplay();
+                  startAutoplay();
+                }
+              }
+            }}
             aria-label="Next slide"
           >
             <ArrowRight size={20} />

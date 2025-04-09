@@ -138,8 +138,8 @@ const Programs = () => {
         height="500px"
         overlayColor="rgba(0, 0, 0, 0.6)"
       >
-        <div className="container mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between">
-          <div className="md:w-1/2 mb-8 md:mb-0 text-white">
+        <div className="container mx-auto relative z-10 flex flex-col items-center justify-center text-center">
+          <div className="w-full max-w-3xl mb-8 md:mb-0 text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Academic Programs
             </h1>
@@ -149,13 +149,6 @@ const Programs = () => {
             <Button className="bg-white text-primary hover:bg-gray-100">
               Enroll Now <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          </div>
-          <div className="md:w-1/2 flex justify-end">
-            <img 
-              src="/lovable-uploads/3d6de585-9b88-499d-a8d5-d4388ecb75a4.png" 
-              alt="School Programs"
-              className="rounded-lg shadow-lg max-h-60 md:max-h-72 object-cover bg-white/80 p-2"
-            />
           </div>
         </div>
       </ParallaxSection>

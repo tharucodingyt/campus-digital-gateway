@@ -136,21 +136,21 @@ const FeaturedNews = () => {
             <CarouselContent>
               {newsItems.map((item, index) => (
                 <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3 p-2">
-                  <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 h-full">
-                    <div className="h-48 overflow-hidden">
+                  <div className="news-card h-full animate-fadeInUp">
+                    <div className="h-52 overflow-hidden">
                       <img
                         src={item.image_url || defaultImage}
                         alt={item.title}
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                        className="news-image"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = defaultImage;
                         }}
                       />
                     </div>
-                    <div className="p-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold px-2 py-1 rounded bg-school-accent text-school-primary">
+                    <div className="news-content">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="news-tag">
                           {item.category || (item.is_event ? 'Event' : 'News')}
                         </span>
                         <div className="flex items-center text-gray-500 text-sm">
@@ -158,7 +158,7 @@ const FeaturedNews = () => {
                           {item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
                         </div>
                       </div>
-                      <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
+                      <h3 className="news-title">{item.title}</h3>
                       <p className="text-gray-600 mb-4">
                         {item.content && item.content.includes("category:")
                           ? item.content.replace(/category:[a-zA-Z]+/i, '').substring(0, 80) + '...'
@@ -168,9 +168,12 @@ const FeaturedNews = () => {
                       </p>
                       <Link
                         to={`/events/${item.id}`}
-                        className="text-school-secondary font-medium hover:text-school-primary transform transition-transform hover:translate-x-1"
+                        className="text-school-secondary font-medium hover:text-school-primary inline-flex items-center group"
                       >
                         Read More
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </Link>
                     </div>
                   </div>

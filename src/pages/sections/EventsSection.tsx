@@ -4,6 +4,12 @@ import { useParams, Navigate } from 'react-router-dom';
 import { Calendar, Search } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import EventCard from "@/components/events/EventCard";
+import GalleryCard from "@/components/events/GalleryCard";
+import CalendarEventCard from "@/components/events/CalendarEventCard";
+import EnhancedGalleryCard from "@/components/events/EnhancedGalleryCard";
+import ImageLightbox from "@/components/events/ImageLightbox";
+import MasonryGallery from "@/components/events/MasonryGallery";
 
 interface Event {
   id: string;
@@ -22,7 +28,8 @@ interface Event {
 const EventsSection = () => {
   const { section } = useParams();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  // Filter functionality removed, but keeping state for compatibility with existing code
+  const [activeFilter] = useState('all');
   const [newsItems, setNewsItems] = useState<Event[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<{ date: string; event: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -180,51 +187,16 @@ const EventsSection = () => {
           ) : (
             <div className="space-y-8">
               {filteredNews.map((item) => (
-                <div key={item.id} className="bg-white rounded-lg overflow-hidden shadow-md">
-                  <div className="md:flex">
-                    <div className="md:flex-shrink-0">
-                      <img
-                        className="h-48 w-full md:h-full md:w-48 object-cover"
-                        src={item.image_url || defaultImage}
-                        alt={item.title}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = defaultImage;
-                        }}
-                      />
-                    </div>
-                    <div className="p-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold px-2 py-1 rounded bg-school-accent text-school-primary">
-                          {item.category || (item.is_event ? 'Event' : 'News')}
-                        </span>
-                        <div className="flex items-center text-gray-500 text-sm">
-                          <Calendar size={14} className="mr-1" />
-                          {item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2 text-school-primary">{item.title}</h3>
-                      <p className="text-gray-600 mb-4">
-                        {item.content.length > 150 ? item.content.substring(0, 150) + '...' : item.content}
-                      </p>
-                      {item.tags && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {item.tags.map((tag, index) => (
-                            <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <a
-                        href={`/events/${item.id}`}
-                        className="text-school-secondary font-medium hover:text-school-primary"
-                      >
-                        Read More
-                      </a>
-                    </div>
-                  </div>
-                </div>
+                <EventCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  content={item.content}
+                  date={item.event_date ? new Date(item.event_date).toLocaleDateString() : new Date(item.created_at).toLocaleDateString()}
+                  imageUrl={item.image_url || ''}
+                  category={item.category || (item.is_event ? 'Event' : 'News')}
+                  tags={item.tags}
+                />
               ))}
             </div>
           )}
@@ -238,27 +210,70 @@ const EventsSection = () => {
             View our upcoming events and important dates
           </p>
           
-          <div className="bg-white rounded-lg shadow-md p-6 max-w-3xl mx-auto">
-            <h3 className="text-xl font-semibold text-school-primary mb-4">Upcoming Events</h3>
-            <div className="space-y-4">
-              {upcomingEvents.length > 0 ? (
-                upcomingEvents.map((event, index) => (
-                  <div key={index} className="flex items-start border-b pb-4 last:border-0">
-                    <div className="flex-shrink-0 mr-3">
-                      <div className="bg-school-accent text-school-primary text-xs font-semibold text-center rounded p-2 w-20">
-                        {event.date}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-medium">{event.event}</p>
+          {isLoading ? (
+            <div className="text-center py-10">
+              <p className="text-gray-600">Loading events...</p>
+            </div>
+          ) : filteredNews.length === 0 ? (
+            <div className="text-center py-10">
+              <Calendar className="h-12 w-12 mx-auto text-school-primary/50 mb-2" />
+              <p className="text-gray-600">No events found. Please check back later.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {filteredNews.filter(event => event.is_event).map((event) => (
+                <div key={event.id} className="event-calendar-card animate-fadeInUp h-full flex flex-col">
+                  <div className="event-date">
+                    <div className="text-sm font-semibold text-center p-2">
+                      {event.event_date ? new Date(event.event_date).toLocaleDateString() : new Date(event.created_at).toLocaleDateString()}
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-600">No upcoming events scheduled.</p>
-              )}
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={event.image_url || defaultImage}
+                      alt={event.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = defaultImage;
+                      }}
+                    />
+                  </div>
+                  <div className="p-6 flex flex-col flex-grow">
+                    <div className="flex items-center mb-3">
+                      <Calendar className="event-icon h-5 w-5 mr-2" />
+                      <span className="news-tag">
+                        {event.category || 'Event'}
+                      </span>
+                    </div>
+                    <h3 className="news-title">{event.title}</h3>
+                    <div className="text-gray-600 mb-4 flex-grow">
+                      {event.content && (
+                        <React.Fragment>
+                          {event.content.length > 100 ? (
+                            <>
+                              <p>{event.content.substring(0, 100)}...</p>
+                              <a
+                                href={`/events/${event.id}`}
+                                className="text-school-secondary font-medium hover:text-school-primary inline-flex items-center group mt-2"
+                              >
+                                Read More
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </a>
+                            </>
+                          ) : (
+                            <p>{event.content}</p>
+                          )}
+                        </React.Fragment>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
       )}
       
@@ -269,38 +284,68 @@ const EventsSection = () => {
             Browse through images from our recent events and activities
           </p>
           
+          <div className="flex flex-col md:flex-row gap-4 mb-8">
+            <div className="relative w-full max-w-md mx-auto">
+              <input
+                type="text"
+                placeholder="Search gallery..."
+                className="pl-10 pr-4 py-2 border rounded-md w-full shadow-sm focus:ring-2 focus:ring-school-primary/30 focus:border-school-primary transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+          
           {isLoading ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <p className="text-gray-600">Loading gallery...</p>
+            <div className="text-center py-20 bg-white rounded-xl shadow-md">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-school-primary mx-auto mb-4"></div>
+              <p className="text-gray-600 font-medium">Loading gallery...</p>
+            </div>
+          ) : filteredNews.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl shadow-md p-8">
+              <p className="text-gray-600 mb-4">No gallery items found for your search. Please try different keywords.</p>
+              <button 
+                onClick={() => {
+                  setSearchTerm('');
+                }}
+                className="px-4 py-2 bg-school-primary text-white rounded-md hover:bg-school-secondary transition-colors"
+              >
+                Clear Search
+              </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {newsItems.map((item) => (
-                <div key={item.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all">
-                  <img
-                    className="w-full h-64 object-cover"
-                    src={item.image_url || defaultImage}
-                    alt={item.title}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = defaultImage;
-                    }}
-                  />
-                  <div className="p-4">
-                    <h3 className="font-medium text-school-primary">{item.title}</h3>
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="flex items-center text-gray-500 text-xs">
-                        <Calendar size={12} className="mr-1" />
-                        {item.event_date 
-                          ? new Date(item.event_date).toLocaleDateString() 
-                          : new Date(item.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="mb-8">
+              <MasonryGallery 
+                items={filteredNews.map(item => ({
+                  id: item.id,
+                  title: item.title,
+                  description: item.content,
+                  date: item.event_date 
+                    ? new Date(item.event_date).toLocaleDateString() 
+                    : new Date(item.created_at).toLocaleDateString(),
+                  imageUrl: item.image_url || '',
+                  category: item.category || (item.is_event ? 'Event' : 'News')
+                }))}
+                columns={3}
+              />
             </div>
           )}
+          
+          <div className="mt-10 text-center">
+            <div className="flex flex-wrap justify-center gap-4">
+              <a href="/events" className="btn-primary inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-school-primary text-school-primary rounded-md hover:bg-school-primary hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Events
+              </a>
+              <a href="/events/calendar" className="btn-primary inline-flex items-center justify-center gap-2 px-4 py-2 bg-school-primary text-white rounded-md hover:bg-school-secondary transition-colors">
+                <Calendar className="h-5 w-5" />
+                View Event Calendar
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </Layout>
